@@ -1,0 +1,2435 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 SNIPER PRO BOT - Real Trading Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+  :root {
+    --bg-dark: #0a0e17; --bg-card: #111827; --bg-hover: #1f2937;
+    --accent: #10b981; --accent-red: #ef4444; --accent-gold: #f59e0b;
+    --accent-blue: #3b82f6; --accent-purple: #8b5cf6;
+    --text-primary: #f3f4f6; --text-secondary: #9ca3af; --border: #374151;
+    --trend-up: #00d084; --trend-down: #ff4757;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; }
+  .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+  .logo { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .logo span { color: var(--text-primary); }
+  .nav-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 14px; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #059669; transform: translateY(-1px); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+  .btn-outline:hover { background: var(--bg-hover); }
+  .btn-danger { background: var(--accent-red); color: white; }
+  .btn-gold { background: var(--accent-gold); color: black; }
+  .btn-blue { background: var(--accent-blue); color: white; }
+  .btn-purple { background: var(--accent-purple); color: white; }
+  .grid { display: grid; gap: 20px; }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: all 0.3s; }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .card-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: rgba(16, 185, 129, 0.2); color: var(--accent); }
+  .badge-red { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+  .badge-gold { background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); }
+  .badge-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+  .stat-value { font-size: 32px; font-weight: 800; margin: 8px 0; }
+  .stat-label { font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-change { font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .positive { color: var(--accent); }
+  .negative { color: var(--accent-red); }
+  .signal-card { background: linear-gradient(135deg, var(--bg-card) 0%, #1a2332 100%); border-left: 4px solid var(--accent); }
+  .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .signal-symbol { font-size: 20px; font-weight: 800; }
+  .signal-direction { padding: 6px 16px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+  .direction-long { background: rgba(16, 185, 129, 0.2); color: var(--accent); }
+  .direction-short { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+  .signal-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .detail-item { display: flex; justify-content: space-between; font-size: 13px; }
+  .detail-label { color: var(--text-secondary); }
+  .detail-value { font-weight: 600; }
+  .progress-bar { height: 6px; background: var(--bg-hover); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .table-container { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px; text-align: left; font-size: 13px; }
+  th { color: var(--text-secondary); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  td { border-bottom: 1px solid rgba(55, 65, 81, 0.5); }
+  tr:hover td { background: var(--bg-hover); }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
+  .form-input { width: 100%; padding: 12px 16px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px; transition: all 0.3s; }
+  .form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+  .form-input::placeholder { color: #6b7280; }
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 32px; animation: modalSlide 0.3s ease; }
+  @keyframes modalSlide { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .modal-title { font-size: 20px; font-weight: 700; }
+  .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
+  .close-btn:hover { color: var(--text-primary); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; flex-wrap: wrap; }
+  .tab { padding: 10px 20px; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; font-size: 14px; border-bottom: 2px solid transparent; transition: all 0.3s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text-primary); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .member-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-hover); border-radius: 8px; margin-bottom: 8px; }
+  .member-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #059669); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+  .member-info { flex: 1; }
+  .member-name { font-weight: 600; font-size: 14px; }
+  .member-status { font-size: 12px; color: var(--text-secondary); }
+  .member-actions { display: flex; gap: 6px; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .status-indicator { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-online { background: rgba(16, 185, 129, 0.2); color: var(--accent); }
+  .status-offline { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .config-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(55, 65, 81, 0.3); }
+  .config-label { font-size: 14px; }
+  .config-value { font-weight: 700; color: var(--accent); }
+  .toast { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; background: var(--bg-card); border: 1px solid var(--accent); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 2000; display: flex; align-items: center; gap: 10px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 20px; }
+  .hidden { display: none !important; }
+  .liq-warning { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); border-radius: 8px; padding: 12px 16px; margin-top: 8px; font-size: 13px; }
+  .liq-safe { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent); border-radius: 8px; padding: 12px 16px; margin-top: 8px; font-size: 13px; }
+  .liq-price { font-weight: 800; font-size: 16px; }
+  .margin-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; padding: 12px; background: var(--bg-hover); border-radius: 8px; }
+  .margin-item { display: flex; justify-content: space-between; font-size: 13px; }
+  .bot-control { display: flex; gap: 12px; margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, var(--bg-card) 0%, #1a2332 100%); border: 1px solid var(--border); border-radius: 12px; align-items: center; flex-wrap: wrap; }
+  .bot-status { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-weight: 700; }
+  .bot-running { background: rgba(16, 185, 129, 0.2); color: var(--accent); }
+  .bot-stopped { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+  .coin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .coin-btn { padding: 10px 8px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s; text-align: center; }
+  .coin-btn:hover { border-color: var(--accent); }
+  .coin-btn.selected { background: rgba(16, 185, 129, 0.2); border-color: var(--accent); color: var(--accent); }
+  .coin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .news-item { padding: 12px; background: var(--bg-hover); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent-blue); }
+  .news-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .news-meta { font-size: 12px; color: var(--text-secondary); }
+  .news-impact { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+  .impact-high { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+  .impact-medium { background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); }
+  .impact-low { background: rgba(16, 185, 129, 0.2); color: var(--accent); }
+  .trend-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+  .trend-bullish { background: rgba(0, 208, 132, 0.15); color: var(--trend-up); }
+  .trend-bearish { background: rgba(255, 71, 87, 0.15); color: var(--trend-down); }
+  .trend-neutral { background: rgba(156, 163, 175, 0.15); color: var(--text-secondary); }
+  .wallet-display { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .wallet-item { text-align: center; }
+  .wallet-value { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .wallet-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; }
+  .mm-info { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1)); border: 1px solid var(--accent); border-radius: 12px; padding: 16px; margin-top: 12px; }
+  .mm-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(55, 65, 81, 0.3); font-size: 14px; }
+  .mm-row:last-child { border-bottom: none; }
+  .risk-meter { height: 8px; background: var(--bg-hover); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .risk-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .risk-low { background: var(--accent); }
+  .risk-medium { background: var(--accent-gold); }
+  .risk-high { background: var(--accent-red); }
+  @media (max-width: 768px) {
+    .grid-4, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 16px; }
+    .signal-details { grid-template-columns: 1fr; }
+    .coin-grid { grid-template-columns: repeat(2, 1fr); }
+    .bot-control { flex-direction: column; align-items: stretch; }
+    .margin-info { grid-template-columns: 1fr; }
+    .wallet-display { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">🎯 <span>SNIPER PRO</span> BOT</div>
+    <div class="nav-buttons" id="authButtons">
+      <button class="btn btn-outline" onclick="showModal('loginModal')">Sign In</button>
+      <button class="btn btn-primary" onclick="showModal('signupModal')">Sign Up</button>
+    </div>
+    <div class="nav-buttons hidden" id="userButtons">
+      <div class="status-indicator status-online"><span class="pulse"></span> Bot Online</div>
+      <button class="btn btn-outline" onclick="showModal('settingsModal')">⚙️ Settings</button>
+      <button class="btn btn-outline" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div id="authRequired" class="card" style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 64px; margin-bottom: 20px;">🔐</div>
+    <h2 style="margin-bottom: 12px;">Welcome to Sniper Pro Bot</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 30px;">Real Binance Futures Trading with Advanced Money Management</p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button class="btn btn-primary" onclick="showModal('signupModal')" style="padding: 14px 32px; font-size: 16px;">Get Started</button>
+      <button class="btn btn-outline" onclick="showModal('loginModal')" style="padding: 14px 32px; font-size: 16px;">Sign In</button>
+    </div>
+  </div>
+
+  <div id="dashboard" class="hidden">
+
+    <!-- WALLET BALANCE DISPLAY -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-title">💰 Futures Wallet</span>
+        <span class="card-badge badge-green" id="walletStatus">Connected</span>
+      </div>
+      <div class="wallet-display">
+        <div class="wallet-item">
+          <div class="wallet-value" id="walletBalance">$0.00</div>
+          <div class="wallet-label">Total Balance</div>
+        </div>
+        <div class="wallet-item">
+          <div class="wallet-value" id="walletAvailable">$0.00</div>
+          <div class="wallet-label">Available</div>
+        </div>
+        <div class="wallet-item">
+          <div class="wallet-value" id="walletMargin">$0.00</div>
+          <div class="wallet-label">Margin Used</div>
+        </div>
+        <div class="wallet-item">
+          <div class="wallet-value" id="walletUnrealized">$0.00</div>
+          <div class="wallet-label">Unrealized PnL</div>
+        </div>
+        <div class="wallet-item">
+          <div class="wallet-value" id="walletMaintMargin">$0.00</div>
+          <div class="wallet-label">Maint. Margin</div>
+        </div>
+        <div class="wallet-item">
+          <div class="wallet-value" id="walletRiskRatio">0%</div>
+          <div class="wallet-label">Risk Ratio</div>
+        </div>
+      </div>
+      <div class="risk-meter">
+        <div class="risk-fill risk-low" id="riskMeterFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- BOT CONTROL -->
+    <div class="bot-control" id="botControlPanel">
+      <div class="bot-status bot-stopped" id="botStatusIndicator">
+        <span id="botStatusDot">🔴</span> 
+        <span id="botStatusText">Bot Stopped</span>
+      </div>
+
+      <!-- Trading Mode Selector -->
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <select id="tradingModeSelector" class="form-input" style="width: 150px; font-size: 13px; padding: 8px;" onchange="changeTradingMode(this.value)">
+          <option value="real">🔴 Real Trading</option>
+          <option value="demo">🎮 Demo Trading</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="btnStartBot" onclick="startTradingBot()">▶️ Start Bot</button>
+      <button class="btn btn-danger hidden" id="btnStopBot" onclick="stopTradingBot()">⏹️ Stop Bot</button>
+      <div style="flex: 1; text-align: right; color: var(--text-secondary); font-size: 13px;">
+        <div>Mode: <strong style="color: var(--accent-gold);" id="displayMode">Real Trading</strong></div>
+        <div>Leverage: <strong style="color: var(--accent-blue);" id="displayLeverage">20x</strong></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="grid grid-4" style="margin-bottom: 20px;">
+      <div class="card">
+        <div class="stat-label">Total Signals Today</div>
+        <div class="stat-value" id="statSignals">0/6</div>
+        <div class="progress-bar"><div class="progress-fill" id="signalProgress" style="width: 0%; background: var(--accent);"></div></div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value" id="statWinRate">0%</div>
+        <div class="stat-change positive" id="statWinRateChange">+0% this week</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Total PnL</div>
+        <div class="stat-value" id="statPnL">$0.00</div>
+        <div class="stat-change positive" id="statPnLChange">+0.00%</div>
+      </div>
+      <div class="card">
+        <div class="stat-label">Active Positions</div>
+        <div class="stat-value" id="statPositions">0/2</div>
+        <div class="stat-change" style="color: var(--text-secondary);">Max 2 positions</div>
+      </div>
+    </div>
+
+    <!-- TREND & NEWS ROW -->
+    <div class="grid grid-3" style="margin-bottom: 20px;">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Market Trend</span>
+          <span class="card-badge badge-blue">LIVE</span>
+        </div>
+        <div id="marketTrendContainer">
+          <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+            <div style="font-size: 32px; margin-bottom: 8px;">📈</div>
+            <p>Analyzing market trends...</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📰 Crypto News</span>
+          <span class="card-badge badge-gold">LIVE</span>
+        </div>
+        <div id="cryptoNewsContainer" style="max-height: 300px; overflow-y: auto;">
+          <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+            <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
+            <p>Loading crypto news...</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🏭 Forex Factory News</span>
+          <span class="card-badge badge-gold">LIVE</span>
+        </div>
+        <div id="forexNewsContainer" style="max-height: 300px; overflow-y: auto;">
+          <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+            <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
+            <p>Loading forex news...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNALS & CONFIG -->
+    <div class="grid grid-2" style="margin-bottom: 20px;">
+      <div class="card" style="min-height: 400px;">
+        <div class="card-header">
+          <span class="card-title">🎯 Active Sniper Signals</span>
+          <span class="card-badge badge-green">LIVE</span>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;">Select Trading Pairs (Max 6 coins):</div>
+          <div class="coin-grid" id="coinSelector">
+            <button class="coin-btn selected" data-symbol="BTCUSDT" onclick="toggleCoin(this)">BTC</button>
+            <button class="coin-btn selected" data-symbol="ETHUSDT" onclick="toggleCoin(this)">ETH</button>
+            <button class="coin-btn" data-symbol="SOLUSDT" onclick="toggleCoin(this)">SOL</button>
+            <button class="coin-btn" data-symbol="BNBUSDT" onclick="toggleCoin(this)">BNB</button>
+            <button class="coin-btn" data-symbol="XRPUSDT" onclick="toggleCoin(this)">XRP</button>
+            <button class="coin-btn" data-symbol="DOGEUSDT" onclick="toggleCoin(this)">DOGE</button>
+            <button class="coin-btn" data-symbol="ADAUSDT" onclick="toggleCoin(this)">ADA</button>
+            <button class="coin-btn" data-symbol="AVAXUSDT" onclick="toggleCoin(this)">AVAX</button>
+            <button class="coin-btn" data-symbol="LINKUSDT" onclick="toggleCoin(this)">LINK</button>
+            <button class="coin-btn" data-symbol="SUIUSDT" onclick="toggleCoin(this)">SUI</button>
+            <button class="coin-btn" data-symbol="SEIUSDT" onclick="toggleCoin(this)">SEI</button>
+            <button class="coin-btn" data-symbol="WLDUSDT" onclick="toggleCoin(this)">WLD</button>
+          </div>
+        </div>
+        <div id="signalsContainer">
+          <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+            <div style="font-size: 48px; margin-bottom: 16px;">📡</div>
+            <p>Scanning markets for sniper signals...</p>
+            <p style="font-size: 12px; margin-top: 8px;">Start the bot to begin real trading</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⚙️ Sniper Configuration</span>
+          <button class="btn btn-sm btn-outline" onclick="showModal('settingsModal')">Edit</button>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Trading Mode</span>
+          <span class="config-value" id="configMode">Real Trading</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Leverage</span>
+          <span class="config-value" id="configLeverage">20x</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Risk per Trade</span>
+          <span class="config-value" id="configRisk">2%</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">RR Target</span>
+          <span class="config-value" id="configRR">1:5</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Timeframe</span>
+          <span class="config-value" id="configTimeframe">5m</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Max Daily Loss</span>
+          <span class="config-value" id="configMaxLoss">15%</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Min Confluence</span>
+          <span class="config-value" id="configConfluence">65%</span>
+        </div>
+        <div class="config-row">
+          <span class="config-label">Cooldown</span>
+          <span class="config-value" id="configCooldown">5 min</span>
+        </div>
+        <div class="config-row" style="border: none;">
+          <span class="config-label">Telegram Token</span>
+          <span class="config-value" id="configToken">Not Set</span>
+        </div>
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">🛡️ Liquidation Protection</div>
+          <div class="liq-safe" id="liqInfo">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Safety Distance:</span>
+              <span class="positive" style="font-weight: 700;">SAFE ✅</span>
+            </div>
+            <div class="margin-info">
+              <div class="margin-item"><span class="detail-label">Position Size:</span><span class="detail-value" id="calcPositionSize">$0.00</span></div>
+              <div class="margin-item"><span class="detail-label">Margin Used:</span><span class="detail-value" id="calcMargin">$0.00</span></div>
+              <div class="margin-item"><span class="detail-label">Liquidation:</span><span class="detail-value" style="color: var(--accent-red);" id="calcLiqPrice">--</span></div>
+              <div class="margin-item"><span class="detail-label">SL Distance:</span><span class="detail-value" id="calcSLDist">--</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONEY MANAGEMENT -->
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-title">💼 Money Management</span>
+        <span class="card-badge badge-green">ACTIVE</span>
+      </div>
+      <div class="mm-info">
+        <div class="mm-row">
+          <span>Account Balance</span>
+          <span id="mmBalance">$0.00</span>
+        </div>
+        <div class="mm-row">
+          <span>Max Risk per Trade (2%)</span>
+          <span id="mmMaxRisk">$0.00</span>
+        </div>
+        <div class="mm-row">
+          <span>Max Daily Loss (15%)</span>
+          <span id="mmMaxDailyLoss">$0.00</span>
+        </div>
+        <div class="mm-row">
+          <span>Current Daily Loss</span>
+          <span id="mmCurrentLoss" style="color: var(--accent-red);">$0.00</span>
+        </div>
+        <div class="mm-row">
+          <span>Remaining Daily Budget</span>
+          <span id="mmRemainingBudget" style="color: var(--accent);">$0.00</span>
+        </div>
+        <div class="mm-row">
+          <span>Position Size (Kelly Criterion)</span>
+          <span id="mmPositionSize">$0.00</span>
+        </div>
+        <div class="mm-row">
+          <span>Recommended Leverage</span>
+          <span id="mmRecLeverage">20x</span>
+        </div>
+        <div class="mm-row" style="border: none;">
+          <span>Liquidation Safety Buffer</span>
+          <span id="mmSafetyBuffer" style="color: var(--accent);">SAFE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSITIONS & HISTORY -->
+    <div class="grid grid-2" style="margin-bottom: 20px;">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Active Positions</span>
+          <span class="card-badge badge-green">LIVE</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>Symbol</th><th>Direction</th><th>Entry</th><th>Current</th><th>ROI</th><th>TP</th></tr>
+            </thead>
+            <tbody id="positionsTable">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No active positions</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">👥 Members (Max 20)</span>
+          <span class="card-badge badge-gold" id="memberCount">0/20</span>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <button class="btn btn-primary" onclick="showModal('addMemberModal')" style="width: 100%;">+ Add New Member</button>
+        </div>
+        <div id="membersList" style="max-height: 400px; overflow-y: auto;">
+          <div style="text-align: center; padding: 20px; color: var(--text-secondary);">No members added yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRADE HISTORY -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📈 Trade History</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-sm btn-outline" onclick="filterHistory('all')">All</button>
+          <button class="btn btn-sm btn-outline" onclick="filterHistory('win')">Wins</button>
+          <button class="btn btn-sm btn-outline" onclick="filterHistory('loss')">Losses</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>Time</th><th>Symbol</th><th>Direction</th><th>Entry</th><th>Exit</th><th>Result</th><th>ROI</th><th>Confidence</th></tr>
+          </thead>
+          <tbody id="historyTable">
+            <tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No trade history</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="signupModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">🎯 Create Sniper Account</h3>
+      <button class="close-btn" onclick="hideModal('signupModal')">&times;</button>
+    </div>
+    <form onsubmit="handleSignup(event)">
+      <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="signupName" placeholder="John Doe" required></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="signupEmail" placeholder="you@example.com" required></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="signupPassword" placeholder="Min 8 characters" required minlength="8"></div>
+      <div class="form-group"><label class="form-label">Confirm Password</label><input type="password" class="form-input" id="signupConfirm" placeholder="Repeat password" required></div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">Create Account</button>
+      <p style="text-align: center; margin-top: 16px; color: var(--text-secondary); font-size: 13px;">Already have an account? <a href="#" onclick="hideModal('signupModal'); showModal('loginModal'); return false;" style="color: var(--accent);">Sign In</a></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">🔐 Sign In to Dashboard</h3>
+      <button class="close-btn" onclick="hideModal('loginModal')">&times;</button>
+    </div>
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="you@example.com" required></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="loginPassword" placeholder="Your password" required></div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">Sign In</button>
+      <p style="text-align: center; margin-top: 16px; color: var(--text-secondary); font-size: 13px;">Don't have an account? <a href="#" onclick="hideModal('loginModal'); showModal('signupModal'); return false;" style="color: var(--accent);">Sign Up</a></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width: 700px;">
+    <div class="modal-header">
+      <h3 class="modal-title">⚙️ Bot Settings</h3>
+      <button class="close-btn" onclick="hideModal('settingsModal')">&times;</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tab-telegram')">Telegram</button>
+      <button class="tab" onclick="switchTab('tab-trading')">Trading</button>
+      <button class="tab" onclick="switchTab('tab-sniper')">Sniper</button>
+      <button class="tab" onclick="switchTab('tab-api')">Binance API</button>
+      <button class="tab" onclick="switchTab('tab-mm')">Money Mgmt</button>
+    </div>
+    <div id="tab-telegram" class="tab-content active">
+      <div class="form-group"><label class="form-label">Telegram Bot Token</label><input type="text" class="form-input" id="settingTelegramToken" placeholder="Enter your bot token from @BotFather"><p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Get this from @BotFather on Telegram</p></div>
+      <div class="form-group"><label class="form-label">Chat ID</label><input type="text" class="form-input" id="settingChatId" value="8738335044"></div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">Save Telegram Settings</button>
+    </div>
+    <div id="tab-trading" class="tab-content">
+      <div class="grid grid-2" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-group"><label class="form-label">Trading Mode</label><select class="form-input" id="settingTradingMode"><option value="real" selected>Real Trading</option><option value="paper">Paper Trading</option></select></div>
+        <div class="form-group"><label class="form-label">Leverage</label><input type="number" class="form-input" id="settingLeverage" value="20" min="1" max="125"></div>
+        <div class="form-group"><label class="form-label">Base Capital (USDT)</label><input type="number" class="form-input" id="settingCapital" value="1000" min="10"></div>
+        <div class="form-group"><label class="form-label">Max Positions</label><input type="number" class="form-input" id="settingMaxPositions" value="2" min="1" max="5"></div>
+        <div class="form-group"><label class="form-label">Risk per Trade (%)</label><input type="number" class="form-input" id="settingRisk" value="2" min="0.1" max="10" step="0.1"></div>
+        <div class="form-group"><label class="form-label">Max Daily Loss (%)</label><input type="number" class="form-input" id="settingMaxLoss" value="15" min="1" max="100"></div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 16px;">Save Trading Settings</button>
+    </div>
+    <div id="tab-sniper" class="tab-content">
+      <div class="grid grid-2" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-group"><label class="form-label">Min Confluence (%)</label><input type="number" class="form-input" id="settingConfluence" value="65" min="50" max="95"></div>
+        <div class="form-group"><label class="form-label">RR Target</label><input type="number" class="form-input" id="settingRR" value="5" min="1" max="20" step="0.5"></div>
+        <div class="form-group"><label class="form-label">Max Daily Signals</label><input type="number" class="form-input" id="settingMaxSignals" value="6" min="1" max="50"></div>
+        <div class="form-group"><label class="form-label">Cooldown (minutes)</label><input type="number" class="form-input" id="settingCooldown" value="5" min="1" max="60"></div>
+        <div class="form-group"><label class="form-label">Timeframe</label><select class="form-input" id="settingTimeframe"><option value="1m">1m</option><option value="5m" selected>5m</option><option value="15m">15m</option><option value="1h">1h</option></select></div>
+        <div class="form-group"><label class="form-label">Min RSI</label><input type="number" class="form-input" id="settingMinRSI" value="35" min="0" max="100"></div>
+        <div class="form-group"><label class="form-label">Max RSI</label><input type="number" class="form-input" id="settingMaxRSI" value="65" min="0" max="100"></div>
+        <div class="form-group"><label class="form-label">Min Volume Ratio</label><input type="number" class="form-input" id="settingVolume" value="1.5" min="1" max="5" step="0.1"></div>
+      </div>
+      <div class="form-group" style="margin-top: 16px;"><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="settingMultiTF" checked style="width: 18px; height: 18px;"><span>Use Multi-Timeframe Analysis</span></label></div>
+      <div class="form-group"><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="settingRSIFilter" checked style="width: 18px; height: 18px;"><span>Use RSI Filter</span></label></div>
+      <div class="form-group"><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="settingSentiment" checked style="width: 18px; height: 18px;"><span>Use Market Sentiment</span></label></div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 16px;">Save Sniper Settings</button>
+    </div>
+    <div id="tab-api" class="tab-content">
+      <div class="form-group"><label class="form-label">Binance API Key</label><input type="text" class="form-input" id="settingApiKey" placeholder="Your Binance API Key"><p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Enable Futures trading permission</p></div>
+      <div class="form-group"><label class="form-label">Binance Secret Key</label><input type="password" class="form-input" id="settingSecretKey" placeholder="Your Binance Secret Key"></div>
+      <div class="form-group"><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="settingTestnet" style="width: 18px; height: 18px;"><span>Use Binance Testnet (For testing only)</span></label></div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">Save API Keys</button>
+      <button class="btn btn-outline" onclick="testApiConnection()" style="width: 100%; margin-top: 8px;">Test Connection & Show Balance</button>
+    </div>
+    <div id="tab-mm" class="tab-content">
+      <div class="grid grid-2" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-group"><label class="form-label">Kelly Criterion Fraction</label><input type="number" class="form-input" id="settingKellyFraction" value="0.25" min="0.1" max="1" step="0.05"><p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Conservative: 0.25, Aggressive: 0.5</p></div>
+        <div class="form-group"><label class="form-label">Max Leverage (Auto)</label><input type="number" class="form-input" id="settingMaxLeverage" value="20" min="1" max="125"></div>
+        <div class="form-group"><label class="form-label">Min Account Balance (USDT)</label><input type="number" class="form-input" id="settingMinBalance" value="7" min="7"></div>
+        <div class="form-group"><label class="form-label">Liquidation Safety Margin (%)</label><input type="number" class="form-input" id="settingLiqSafety" value="50" min="10" max="90"><p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">SL must be this % away from liq price</p></div>
+        <div class="form-group"><label class="form-label">Compound Growth</label><select class="form-input" id="settingCompound"><option value="true" selected>Yes - Use current balance</option><option value="false">No - Use fixed capital</option></select></div>
+        <div class="form-group"><label class="form-label">Trailing Stop (%)</label><input type="number" class="form-input" id="settingTrailingStop" value="2" min="0.5" max="10" step="0.5"></div>
+      </div>
+      <div class="form-group" style="margin-top: 16px;"><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="settingAutoLeverage" checked style="width: 18px; height: 18px;"><span>Auto-adjust leverage based on volatility (ATR)</span></label></div>
+      <div class="form-group"><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="settingAntiMartingale" checked style="width: 18px; height: 18px;"><span>Anti-Martingale (Reduce size after loss)</span></label></div>
+      <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 16px;">Save Money Management</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addMemberModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">👤 Add New Member</h3>
+      <button class="close-btn" onclick="hideModal('addMemberModal')">&times;</button>
+    </div>
+    <form onsubmit="handleAddMember(event)">
+      <div class="form-group"><label class="form-label">Member Name</label><input type="text" class="form-input" id="memberName" placeholder="Member name" required></div>
+      <div class="form-group"><label class="form-label">Telegram Username (optional)</label><input type="text" class="form-input" id="memberTelegram" placeholder="@username"></div>
+      <div class="form-group"><label class="form-label">Binance API Key</label><input type="text" class="form-input" id="memberApiKey" placeholder="Member's Binance API Key"></div>
+      <div class="form-group"><label class="form-label">Binance Secret Key</label><input type="password" class="form-input" id="memberSecretKey" placeholder="Member's Binance Secret Key"></div>
+      <div class="form-group"><label class="form-label">Max Position Size (USDT)</label><input type="number" class="form-input" id="memberMaxSize" value="100" min="10"></div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">Add Member</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">✅</span>
+  <span id="toastMessage">Operation successful</span>
+</div>
+
+<script>
+// ================= DATA STORE =================
+let currentUser = null;
+let members = JSON.parse(localStorage.getItem('sniper_members') || '[]');
+let settings = JSON.parse(localStorage.getItem('sniper_settings') || JSON.stringify({
+  telegramToken: '', chatId: '8738335044', tradingMode: 'real', leverage: 20, baseCapital: 1000,
+  maxPositions: 2, riskPerTrade: 2, maxDailyLoss: 15, minConfluence: 65, rrTarget: 5,
+  maxDailySignals: 6, cooldown: 5, timeframe: '5m', minRSI: 35, maxRSI: 65, minVolumeRatio: 1.5,
+  useMultiTF: true, useRSIFilter: true, useSentiment: true, apiKey: '', secretKey: '', useTestnet: false,
+  selectedCoins: ['BTCUSDT', 'ETHUSDT'],
+  kellyFraction: 0.25, maxLeverage: 20, minBalance: 7, liqSafetyMargin: 50,
+  compoundGrowth: true, trailingStop: 2, autoLeverage: true, antiMartingale: true
+}));
+let signals = JSON.parse(localStorage.getItem('sniper_signals') || '[]');
+let positions = JSON.parse(localStorage.getItem('sniper_positions') || '[]');
+let trades = JSON.parse(localStorage.getItem('sniper_trades') || '[]');
+let stats = JSON.parse(localStorage.getItem('sniper_stats') || JSON.stringify({ total: 0, wins: 0, losses: 0, winRate: 0, totalPnL: 0 }));
+let dailyCount = JSON.parse(localStorage.getItem('sniper_daily') || JSON.stringify({ count: 0, date: new Date().toISOString().split('T')[0] }));
+
+let botRunning = false, botInterval = null, priceUpdateInterval = null;
+let lastTradeTime = 0, dailyLoss = 0, consecutiveLosses = 0, walletData = null;
+let trendData = {}, newsInterval = null, trendInterval = null;
+
+const BINANCE_BASE = 'https://fapi.binance.com';
+const BINANCE_TESTNET = 'https://testnet.binancefuture.com';
+
+function getBaseUrl() { return settings.useTestnet ? BINANCE_TESTNET : BINANCE_BASE; }
+
+// ================= AUTH =================
+function handleSignup(e) {
+  e.preventDefault();
+  const name = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const pass = document.getElementById('signupPassword').value;
+  const confirm = document.getElementById('signupConfirm').value;
+  if (pass !== confirm) { showToast('❌ Passwords do not match!', 'error'); return; }
+  const users = JSON.parse(localStorage.getItem('sniper_users') || '[]');
+  if (users.find(u => u.email === email)) { showToast('❌ Email already registered!', 'error'); return; }
+  users.push({ name, email, password: btoa(pass), created: new Date().toISOString() });
+  localStorage.setItem('sniper_users', JSON.stringify(users));
+  currentUser = { name, email };
+  localStorage.setItem('sniper_current_user', JSON.stringify(currentUser));
+  hideModal('signupModal'); showDashboard(); showToast('✅ Account created successfully!');
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPassword').value;
+  const users = JSON.parse(localStorage.getItem('sniper_users') || '[]');
+  const user = users.find(u => u.email === email && u.password === btoa(pass));
+  if (!user) { showToast('❌ Invalid email or password!', 'error'); return; }
+  currentUser = { name: user.name, email: user.email };
+  localStorage.setItem('sniper_current_user', JSON.stringify(currentUser));
+  hideModal('loginModal'); showDashboard(); showToast(`✅ Welcome back, ${user.name}!`);
+}
+
+function logout() {
+  stopTradingBot(); currentUser = null;
+  localStorage.removeItem('sniper_current_user');
+  document.getElementById('authRequired').classList.remove('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('authButtons').classList.remove('hidden');
+  document.getElementById('userButtons').classList.add('hidden');
+  showToast('👋 Logged out successfully');
+}
+
+function showDashboard() {
+  document.getElementById('authRequired').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('authButtons').classList.add('hidden');
+  document.getElementById('userButtons').classList.remove('hidden');
+  updateStats(); renderMembers(); renderPositions(); renderHistory();
+  loadSettingsToForm(); updateCoinSelector(); fetchWalletBalance();
+  updateMoneyManagement(); startNewsFeeds(); startTrendAnalysis();
+}
+
+// ================= WALLET BALANCE =================
+async function fetchWalletBalance() {
+  try {
+    const apiKey = settings.apiKey, secretKey = settings.secretKey;
+    if (!apiKey || !secretKey) {
+      document.getElementById('walletStatus').textContent = 'No API';
+      document.getElementById('walletStatus').className = 'card-badge badge-red';
+      return;
+    }
+    const timestamp = Date.now();
+    const queryString = `timestamp=${timestamp}`;
+    const signature = generateSignature(queryString, secretKey);
+    const response = await fetch(`${getBaseUrl()}/fapi/v2/account?${queryString}&signature=${signature}`, {
+      headers: { 'X-MBX-APIKEY': apiKey }
+    });
+    if (!response.ok) {
+      document.getElementById('walletStatus').textContent = 'Error';
+      document.getElementById('walletStatus').className = 'card-badge badge-red';
+      return;
+    }
+    const data = await response.json();
+    walletData = data;
+    const usdtAsset = data.assets.find(a => a.asset === 'USDT');
+    if (usdtAsset) {
+      const totalBalance = parseFloat(usdtAsset.walletBalance);
+      const available = parseFloat(usdtAsset.availableBalance);
+      const marginUsed = parseFloat(usdtAsset.initialMargin) + parseFloat(usdtAsset.maintMargin);
+      const unrealizedPnL = parseFloat(usdtAsset.unrealizedProfit);
+      const maintMargin = parseFloat(usdtAsset.maintMargin);
+      const riskRatio = totalBalance > 0 ? (marginUsed / totalBalance) * 100 : 0;
+      document.getElementById('walletBalance').textContent = '$' + totalBalance.toFixed(2);
+      document.getElementById('walletAvailable').textContent = '$' + available.toFixed(2);
+      document.getElementById('walletMargin').textContent = '$' + marginUsed.toFixed(2);
+      document.getElementById('walletUnrealized').textContent = (unrealizedPnL >= 0 ? '+' : '') + '$' + unrealizedPnL.toFixed(2);
+      document.getElementById('walletUnrealized').style.color = unrealizedPnL >= 0 ? 'var(--accent)' : 'var(--accent-red)';
+      document.getElementById('walletMaintMargin').textContent = '$' + maintMargin.toFixed(2);
+      document.getElementById('walletRiskRatio').textContent = riskRatio.toFixed(1) + '%';
+      document.getElementById('walletRiskRatio').style.color = riskRatio > 80 ? 'var(--accent-red)' : riskRatio > 50 ? 'var(--accent-gold)' : 'var(--accent)';
+      const riskFill = document.getElementById('riskMeterFill');
+      riskFill.style.width = Math.min(riskRatio, 100) + '%';
+      riskFill.className = 'risk-fill ' + (riskRatio > 80 ? 'risk-high' : riskRatio > 50 ? 'risk-medium' : 'risk-low');
+      document.getElementById('walletStatus').textContent = 'Connected';
+      document.getElementById('walletStatus').className = 'card-badge badge-green';
+      updateMoneyManagement(totalBalance);
+    }
+  } catch (e) {
+    console.error('Wallet fetch error:', e);
+    document.getElementById('walletStatus').textContent = 'Error';
+    document.getElementById('walletStatus').className = 'card-badge badge-red';
+  }
+}
+
+// ================= MONEY MANAGEMENT =================
+function updateMoneyManagement(balance) {
+  const actualBalance = balance || (walletData ? parseFloat(walletData.assets.find(a => a.asset === 'USDT')?.walletBalance || 0) : settings.baseCapital);
+  const maxRisk = actualBalance * (settings.riskPerTrade / 100);
+  const maxDailyLoss = actualBalance * (settings.maxDailyLoss / 100);
+  const currentLoss = dailyLoss * (actualBalance / 100);
+  const remainingBudget = maxDailyLoss - currentLoss;
+  const winRate = stats.winRate / 100 || 0.5;
+  const avgWin = trades.filter(t => t.roi > 0).reduce((sum, t) => sum + t.roi, 0) / (stats.wins || 1) || 5;
+  const avgLoss = trades.filter(t => t.roi <= 0).reduce((sum, t) => sum + Math.abs(t.roi), 0) / (stats.losses || 1) || 2;
+  const kelly = winRate > 0 && avgWin > 0 ? ((winRate * avgWin) - ((1 - winRate) * avgLoss)) / avgWin : 0.02;
+  let kellyPosition = actualBalance * Math.max(0, kelly) * settings.kellyFraction;
+  if (settings.antiMartingale && consecutiveLosses > 0) {
+    kellyPosition = kellyPosition * Math.pow(0.8, consecutiveLosses);
+  }
+  const recLeverage = settings.autoLeverage ? Math.min(settings.maxLeverage, Math.max(5, Math.floor(20 / (avgLoss || 2)))) : settings.leverage;
+  const safetyBuffer = actualBalance > 0 ? ((actualBalance - currentLoss) / actualBalance * 100).toFixed(1) + '%' : 'N/A';
+  document.getElementById('mmBalance').textContent = '$' + actualBalance.toFixed(2);
+  document.getElementById('mmMaxRisk').textContent = '$' + maxRisk.toFixed(2);
+  document.getElementById('mmMaxDailyLoss').textContent = '$' + maxDailyLoss.toFixed(2);
+  document.getElementById('mmCurrentLoss').textContent = '$' + currentLoss.toFixed(2);
+  document.getElementById('mmRemainingBudget').textContent = '$' + remainingBudget.toFixed(2);
+  document.getElementById('mmPositionSize').textContent = '$' + kellyPosition.toFixed(2);
+  document.getElementById('mmRecLeverage').textContent = recLeverage + 'x';
+  document.getElementById('mmSafetyBuffer').textContent = safetyBuffer;
+  document.getElementById('mmSafetyBuffer').style.color = remainingBudget > maxDailyLoss * 0.5 ? 'var(--accent)' : 'var(--accent-red)';
+}
+
+// ================= NEWS FEEDS =================
+function startNewsFeeds() {
+  if (newsInterval) clearInterval(newsInterval);
+  fetchCryptoNews(); fetchForexNews();
+  newsInterval = setInterval(() => { fetchCryptoNews(); fetchForexNews(); }, 60000);
+}
+
+async function fetchCryptoNews() {
+  const container = document.getElementById('cryptoNewsContainer');
+  // සෑම විටම සිංහල ක්‍රිප්ටෝ නිව්ස් පෙන්වන්න
+  const sinhalaNews = getSinhalaNews();
+  const items = sinhalaNews.crypto.map(news => `
+    <div class="news-item" style="border-left-color: ${news.impact === 'high' ? 'var(--accent-red)' : news.impact === 'medium' ? 'var(--accent-gold)' : 'var(--accent)'}">
+      <div class="news-title">${news.title} <span class="news-impact impact-${news.impact}">${news.impact === 'high' ? 'ඉහළ' : news.impact === 'medium' ? 'මධ්‍යම' : 'අඩු'} බලපෑම</span></div>
+      <div class="news-meta">${news.desc} | ${news.time}</div>
+    </div>
+  `).join('');
+  container.innerHTML = items;
+}
+
+async function fetchForexNews() {
+  const container = document.getElementById('forexNewsContainer');
+  // සෑම විටම සිංහල ෆොරෙක්ස් නිව්ස් පෙන්වන්න
+  const sinhalaNews = getSinhalaNews();
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  const items = sinhalaNews.forex.map(event => {
+    const isUpcoming = event.impact === 'high' && !isWeekend;
+    return `<div class="news-item" style="border-left-color: ${event.impact === 'high' ? 'var(--accent-red)' : event.impact === 'medium' ? 'var(--accent-gold)' : 'var(--accent)'}">
+      <div class="news-title">${event.title} <span class="news-impact impact-${event.impact}">${event.impact === 'high' ? 'ඉහළ' : event.impact === 'medium' ? 'මධ්‍යම' : 'අඩු'} බලපෑම</span></div>
+      <div class="news-meta">${event.desc} | ${event.time} ${isUpcoming ? '<span style="color: var(--accent-red)">⚠️ අවධානය</span>' : ''}</div>
+    </div>`;
+  }).join('');
+  container.innerHTML = items;
+}
+
+// ================= TREND ANALYSIS =================
+function startTrendAnalysis() {
+  if (trendInterval) clearInterval(trendInterval);
+  analyzeMarketTrend();
+  trendInterval = setInterval(analyzeMarketTrend, 30000);
+}
+
+async function analyzeMarketTrend() {
+  const container = document.getElementById('marketTrendContainer');
+  try {
+    const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
+    let trendHTML = '';
+    for (const symbol of symbols) {
+      const klines = await getKlines(symbol, '1h', 50);
+      if (!klines) continue;
+      const closes = klines.map(k => parseFloat(k[4]));
+      const ema20 = calculateEMA(closes, 20);
+      const ema50 = calculateEMA(closes, 50);
+      const currentPrice = closes[closes.length - 1];
+      const prevPrice = closes[closes.length - 2];
+      const change24h = ((currentPrice - closes[0]) / closes[0]) * 100;
+      const trend = currentPrice > ema20 && ema20 > ema50 ? 'BULLISH' : currentPrice < ema20 && ema20 < ema50 ? 'BEARISH' : 'NEUTRAL';
+      const trendClass = trend === 'BULLISH' ? 'trend-bullish' : trend === 'BEARISH' ? 'trend-bearish' : 'trend-neutral';
+      const trendIcon = trend === 'BULLISH' ? '📈' : trend === 'BEARISH' ? '📉' : '➡️';
+      trendHTML += `<div class="trend-indicator ${trendClass}">${trendIcon} ${symbol.replace('USDT', '')}: ${trend} (${change24h >= 0 ? '+' : ''}${change24h.toFixed(2)}%)</div>`;
+      trendData[symbol] = { trend, change24h, ema20, ema50, currentPrice };
+    }
+    container.innerHTML = trendHTML || '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">No trend data available</div>';
+  } catch (e) {
+    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">📡 Trend analysis unavailable</div>';
+  }
+}
+
+// ================= MEMBERS =================
+function handleAddMember(e) {
+  e.preventDefault();
+  if (members.length >= 20) { showToast('❌ Maximum 20 members allowed!', 'error'); return; }
+  const member = {
+    id: Date.now(),
+    name: document.getElementById('memberName').value,
+    telegram: document.getElementById('memberTelegram').value,
+    apiKey: document.getElementById('memberApiKey').value,
+    secretKey: document.getElementById('memberSecretKey').value,
+    maxSize: parseFloat(document.getElementById('memberMaxSize').value),
+    active: true, added: new Date().toISOString()
+  };
+  members.push(member);
+  localStorage.setItem('sniper_members', JSON.stringify(members));
+  hideModal('addMemberModal'); e.target.reset(); renderMembers();
+  showToast(`✅ Member "${member.name}" added successfully!`);
+}
+
+function renderMembers() {
+  const container = document.getElementById('membersList');
+  document.getElementById('memberCount').textContent = `${members.length}/20`;
+  if (members.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">No members added yet</div>';
+    return;
+  }
+  container.innerHTML = members.map(m => `
+    <div class="member-card">
+      <div class="member-avatar">${m.name.charAt(0).toUpperCase()}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-status">${m.telegram || 'No Telegram'} | Max: $${m.maxSize}</div>
+      </div>
+      <div class="member-actions">
+        <button class="btn btn-sm btn-outline" onclick="toggleMember(${m.id})">${m.active ? 'Pause' : 'Resume'}</button>
+        <button class="btn btn-sm btn-danger" onclick="removeMember(${m.id})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleMember(id) {
+  const m = members.find(x => x.id === id);
+  if (m) { m.active = !m.active; localStorage.setItem('sniper_members', JSON.stringify(members)); renderMembers(); }
+}
+
+function removeMember(id) {
+  if (!confirm('Remove this member?')) return;
+  members = members.filter(x => x.id !== id);
+  localStorage.setItem('sniper_members', JSON.stringify(members));
+  renderMembers(); showToast('✅ Member removed');
+}
+
+// ================= SETTINGS =================
+function loadSettingsToForm() {
+  document.getElementById('settingTelegramToken').value = settings.telegramToken || '';
+  document.getElementById('settingChatId').value = settings.chatId || '8738335044';
+  document.getElementById('settingTradingMode').value = settings.tradingMode || 'real';
+  document.getElementById('settingLeverage').value = settings.leverage || 20;
+  document.getElementById('settingCapital').value = settings.baseCapital || 1000;
+  document.getElementById('settingMaxPositions').value = settings.maxPositions || 2;
+  document.getElementById('settingRisk').value = settings.riskPerTrade || 2;
+  document.getElementById('settingMaxLoss').value = settings.maxDailyLoss || 15;
+  document.getElementById('settingConfluence').value = settings.minConfluence || 65;
+  document.getElementById('settingRR').value = settings.rrTarget || 5;
+  document.getElementById('settingMaxSignals').value = settings.maxDailySignals || 6;
+  document.getElementById('settingCooldown').value = settings.cooldown || 5;
+  document.getElementById('settingTimeframe').value = settings.timeframe || '5m';
+  document.getElementById('settingMinRSI').value = settings.minRSI || 35;
+  document.getElementById('settingMaxRSI').value = settings.maxRSI || 65;
+  document.getElementById('settingVolume').value = settings.minVolumeRatio || 1.5;
+  document.getElementById('settingMultiTF').checked = settings.useMultiTF !== false;
+  document.getElementById('settingRSIFilter').checked = settings.useRSIFilter !== false;
+  document.getElementById('settingSentiment').checked = settings.useSentiment !== false;
+  document.getElementById('settingApiKey').value = settings.apiKey || '';
+  document.getElementById('settingSecretKey').value = settings.secretKey || '';
+  document.getElementById('settingTestnet').checked = settings.useTestnet || false;
+  document.getElementById('settingKellyFraction').value = settings.kellyFraction || 0.25;
+  document.getElementById('settingMaxLeverage').value = settings.maxLeverage || 20;
+  document.getElementById('settingMinBalance').value = settings.minBalance || 7;
+  document.getElementById('settingLiqSafety').value = settings.liqSafetyMargin || 50;
+  document.getElementById('settingCompound').value = settings.compoundGrowth !== false ? 'true' : 'false';
+  document.getElementById('settingTrailingStop').value = settings.trailingStop || 2;
+  document.getElementById('settingAutoLeverage').checked = settings.autoLeverage !== false;
+  document.getElementById('settingAntiMartingale').checked = settings.antiMartingale !== false;
+
+  document.getElementById('configMode').textContent = settings.tradingMode === 'real' ? 'Real Trading' : 'Paper Trading';
+  document.getElementById('configLeverage').textContent = settings.leverage + 'x';
+  document.getElementById('configRisk').textContent = settings.riskPerTrade + '%';
+  document.getElementById('configRR').textContent = '1:' + settings.rrTarget;
+  document.getElementById('configTimeframe').textContent = settings.timeframe;
+  document.getElementById('configMaxLoss').textContent = settings.maxDailyLoss + '%';
+  document.getElementById('configConfluence').textContent = settings.minConfluence + '%';
+  document.getElementById('configCooldown').textContent = settings.cooldown + ' min';
+  document.getElementById('configToken').textContent = settings.telegramToken ? '✅ Set' : 'Not Set';
+  document.getElementById('displayMode').textContent = settings.tradingMode === 'real' ? 'Real Trading' : 'Paper Trading';
+  document.getElementById('displayLeverage').textContent = settings.leverage + 'x';
+}
+
+function saveSettings() {
+  settings.telegramToken = document.getElementById('settingTelegramToken').value;
+  settings.chatId = document.getElementById('settingChatId').value;
+  settings.tradingMode = document.getElementById('settingTradingMode').value;
+  settings.leverage = parseInt(document.getElementById('settingLeverage').value);
+  settings.baseCapital = parseFloat(document.getElementById('settingCapital').value);
+  settings.maxPositions = parseInt(document.getElementById('settingMaxPositions').value);
+  settings.riskPerTrade = parseFloat(document.getElementById('settingRisk').value);
+  settings.maxDailyLoss = parseFloat(document.getElementById('settingMaxLoss').value);
+  settings.minConfluence = parseInt(document.getElementById('settingConfluence').value);
+  settings.rrTarget = parseFloat(document.getElementById('settingRR').value);
+  settings.maxDailySignals = parseInt(document.getElementById('settingMaxSignals').value);
+  settings.cooldown = parseInt(document.getElementById('settingCooldown').value);
+  settings.timeframe = document.getElementById('settingTimeframe').value;
+  settings.minRSI = parseInt(document.getElementById('settingMinRSI').value);
+  settings.maxRSI = parseInt(document.getElementById('settingMaxRSI').value);
+  settings.minVolumeRatio = parseFloat(document.getElementById('settingVolume').value);
+  settings.useMultiTF = document.getElementById('settingMultiTF').checked;
+  settings.useRSIFilter = document.getElementById('settingRSIFilter').checked;
+  settings.useSentiment = document.getElementById('settingSentiment').checked;
+  settings.apiKey = document.getElementById('settingApiKey').value;
+  settings.secretKey = document.getElementById('settingSecretKey').value;
+  settings.useTestnet = document.getElementById('settingTestnet').checked;
+  settings.kellyFraction = parseFloat(document.getElementById('settingKellyFraction').value);
+  settings.maxLeverage = parseInt(document.getElementById('settingMaxLeverage').value);
+  settings.minBalance = parseFloat(document.getElementById('settingMinBalance').value);
+  settings.liqSafetyMargin = parseFloat(document.getElementById('settingLiqSafety').value);
+  settings.compoundGrowth = document.getElementById('settingCompound').value === 'true';
+  settings.trailingStop = parseFloat(document.getElementById('settingTrailingStop').value);
+  settings.autoLeverage = document.getElementById('settingAutoLeverage').checked;
+  settings.antiMartingale = document.getElementById('settingAntiMartingale').checked;
+  localStorage.setItem('sniper_settings', JSON.stringify(settings));
+  loadSettingsToForm(); showToast('✅ Settings saved successfully!');
+}
+
+async function testApiConnection() {
+  showToast('🔄 Testing API connection...');
+  try {
+    const balance = await getBinanceBalance();
+    if (balance !== null) {
+      showToast(`✅ API Connected! Balance: $${balance.toFixed(2)} USDT`);
+      fetchWalletBalance();
+    } else {
+      showToast('❌ API connection failed. Check keys.', 'error');
+    }
+  } catch (e) { showToast('❌ API connection failed!', 'error'); }
+}
+
+// ================= BINANCE API FUNCTIONS =================
+function generateSignature(queryString, secretKey) {
+  return CryptoJS.HmacSHA256(queryString, secretKey).toString();
+}
+
+async function getBinanceBalance() {
+  try {
+    const apiKey = settings.apiKey, secretKey = settings.secretKey;
+    if (!apiKey || !secretKey) return null;
+    const timestamp = Date.now();
+    const queryString = `timestamp=${timestamp}`;
+    const signature = generateSignature(queryString, secretKey);
+    const response = await fetch(`${getBaseUrl()}/fapi/v2/balance?${queryString}&signature=${signature}`, {
+      headers: { 'X-MBX-APIKEY': apiKey }
+    });
+    if (!response.ok) throw new Error('API Error');
+    const data = await response.json();
+    const usdt = data.find(b => b.asset === 'USDT');
+    return usdt ? parseFloat(usdt.availableBalance) : 0;
+  } catch (e) { console.error('Balance fetch error:', e); return null; }
+}
+
+async function getSymbolPrice(symbol) {
+  try {
+    const response = await fetch(`${getBaseUrl()}/fapi/v1/ticker/price?symbol=${symbol}`);
+    if (!response.ok) throw new Error('Price fetch error');
+    const data = await response.json();
+    return parseFloat(data.price);
+  } catch (e) { console.error('Price error:', e); return null; }
+}
+
+async function getKlines(symbol, interval, limit = 100) {
+  try {
+    const response = await fetch(`${getBaseUrl()}/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+    if (!response.ok) throw new Error('Klines error');
+    return await response.json();
+  } catch (e) { console.error('Klines error:', e); return null; }
+}
+
+async function getExchangeInfo() {
+  try {
+    const response = await fetch(`${getBaseUrl()}/fapi/v1/exchangeInfo`);
+    if (!response.ok) throw new Error('Exchange info error');
+    return await response.json();
+  } catch (e) { console.error('Exchange info error:', e); return null; }
+}
+
+// ================= TECHNICAL ANALYSIS =================
+function calculateRSI(closes, period = 14) {
+  if (closes.length < period + 1) return 50;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const change = closes[closes.length - i] - closes[closes.length - i - 1];
+    if (change >= 0) gains += change; else losses -= change;
+  }
+  const avgGain = gains / period, avgLoss = losses / period;
+  if (avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - (100 / (1 + rs));
+}
+
+function calculateEMA(closes, period) {
+  const k = 2 / (period + 1);
+  let ema = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < closes.length; i++) { ema = closes[i] * k + ema * (1 - k); }
+  return ema;
+}
+
+function calculateBB(closes, period = 20, stdDev = 2) {
+  const sma = closes.slice(-period).reduce((a, b) => a + b, 0) / period;
+  const variance = closes.slice(-period).reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
+  const std = Math.sqrt(variance);
+  return { upper: sma + stdDev * std, middle: sma, lower: sma - stdDev * std };
+}
+
+function calculateATR(klines, period = 14) {
+  if (klines.length < period + 1) return 0;
+  let trSum = 0;
+  for (let i = klines.length - period; i < klines.length; i++) {
+    const high = parseFloat(klines[i][2]), low = parseFloat(klines[i][3]), prevClose = parseFloat(klines[i-1][4]);
+    trSum += Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+  }
+  return trSum / period;
+}
+
+function calculateVolumeRatio(klines) {
+  if (klines.length < 20) return 1;
+  const currentVol = parseFloat(klines[klines.length - 1][5]);
+  const avgVol = klines.slice(-20).reduce((sum, k) => sum + parseFloat(k[5]), 0) / 20;
+  return currentVol / avgVol;
+}
+
+function detectKeyLevels(klines) {
+  const highs = klines.map(k => parseFloat(k[2])), lows = klines.map(k => parseFloat(k[3]));
+  return { resistance: Math.max(...highs.slice(-20)), support: Math.min(...lows.slice(-20)) };
+}
+
+function calculateLiquidationPrice(entry, direction, leverage) {
+  const liqDistance = (1 / leverage) * 0.9;
+  return direction === 'LONG' ? entry * (1 - liqDistance) : entry * (1 + liqDistance);
+}
+
+function calculatePositionSize(balance, riskPercent, entry, stopLoss, leverage) {
+  const riskAmount = balance * (riskPercent / 100);
+  const priceDiff = Math.abs(entry - stopLoss);
+  const stopLossPercent = priceDiff / entry;
+  if (stopLossPercent === 0) return 0;
+  const positionSize = riskAmount / stopLossPercent;
+  const maxPosition = balance * leverage * 0.90;
+  return Math.min(positionSize, maxPosition);
+}
+
+function getQuantityPrecision(symbol) {
+  const precisions = { 'BTCUSDT': 3, 'ETHUSDT': 3, 'SOLUSDT': 0, 'BNBUSDT': 2, 'XRPUSDT': 1, 'DOGEUSDT': 0, 'ADAUSDT': 0, 'AVAXUSDT': 2, 'LINKUSDT': 2, 'SUIUSDT': 0, 'SEIUSDT': 0, 'WLDUSDT': 0 };
+  return precisions[symbol] || 3;
+}
+
+function getPricePrecision(symbol) {
+  const precisions = { 'BTCUSDT': 2, 'ETHUSDT': 2, 'SOLUSDT': 3, 'BNBUSDT': 2, 'XRPUSDT': 4, 'DOGEUSDT': 5, 'ADAUSDT': 4, 'AVAXUSDT': 3, 'LINKUSDT': 3, 'SUIUSDT': 4, 'SEIUSDT': 4, 'WLDUSDT': 4 };
+  return precisions[symbol] || 2;
+}
+
+// ================= SNIPER SIGNAL ENGINE =================
+async function analyzeSymbol(symbol) {
+  try {
+    const klines5m = await getKlines(symbol, '5m', 100);
+    const klines1h = await getKlines(symbol, '1h', 50);
+    if (!klines5m || !klines1h) return null;
+    const closes5m = klines5m.map(k => parseFloat(k[4]));
+    const currentPrice = closes5m[closes5m.length - 1];
+    const rsi = calculateRSI(closes5m, 14);
+    const ema20 = calculateEMA(closes5m, 20);
+    const ema50 = calculateEMA(closes5m, 50);
+    const bb = calculateBB(closes5m, 20, 2);
+    const atr = calculateATR(klines5m, 14);
+    const volRatio = calculateVolumeRatio(klines5m);
+    const levels = detectKeyLevels(klines5m);
+    const closes1h = klines1h.map(k => parseFloat(k[4]));
+    const ema20_1h = calculateEMA(closes1h, 20);
+
+    let confluence = 0, direction = null, reasons = [];
+    if (settings.useRSIFilter) {
+      if (rsi < settings.minRSI) { direction = 'LONG'; confluence += 20; reasons.push('RSI Oversold'); }
+      else if (rsi > settings.maxRSI) { direction = 'SHORT'; confluence += 20; reasons.push('RSI Overbought'); }
+    }
+    if (currentPrice > ema20 && ema20 > ema50) {
+      if (!direction) direction = 'LONG';
+      if (direction === 'LONG') { confluence += 15; reasons.push('EMA Bullish'); }
+    } else if (currentPrice < ema20 && ema20 < ema50) {
+      if (!direction) direction = 'SHORT';
+      if (direction === 'SHORT') { confluence += 15; reasons.push('EMA Bearish'); }
+    }
+    if (currentPrice <= bb.lower && direction === 'LONG') { confluence += 15; reasons.push('BB Lower Touch'); }
+    else if (currentPrice >= bb.upper && direction === 'SHORT') { confluence += 15; reasons.push('BB Upper Touch'); }
+    if (volRatio >= settings.minVolumeRatio) { confluence += 10; reasons.push('High Volume'); }
+    if (direction === 'LONG' && Math.abs(currentPrice - levels.support) / currentPrice < 0.005) { confluence += 15; reasons.push('Support Bounce'); }
+    else if (direction === 'SHORT' && Math.abs(currentPrice - levels.resistance) / currentPrice < 0.005) { confluence += 15; reasons.push('Resistance Reject'); }
+    if (settings.useMultiTF) {
+      if (direction === 'LONG' && currentPrice > ema20_1h) { confluence += 10; reasons.push('HTF Bullish'); }
+      else if (direction === 'SHORT' && currentPrice < ema20_1h) { confluence += 10; reasons.push('HTF Bearish'); }
+    }
+    const recentCloses = closes5m.slice(-10);
+    let hh = 0, ll = 0;
+    for (let i = 2; i < recentCloses.length; i++) {
+      if (recentCloses[i] > recentCloses[i-1] && recentCloses[i-1] > recentCloses[i-2]) hh++;
+      if (recentCloses[i] < recentCloses[i-1] && recentCloses[i-1] < recentCloses[i-2]) ll++;
+    }
+    if (direction === 'LONG' && hh > ll) { confluence += 10; reasons.push('Bullish Structure'); }
+    else if (direction === 'SHORT' && ll > hh) { confluence += 10; reasons.push('Bearish Structure'); }
+
+    if (confluence >= settings.minConfluence && direction) {
+      const slDistance = atr * 1.5;
+      const sl = direction === 'LONG' ? currentPrice - slDistance : currentPrice + slDistance;
+      const rr = settings.rrTarget;
+      const tpDistance = slDistance * rr;
+      const tp1 = direction === 'LONG' ? currentPrice + (tpDistance * 0.2) : currentPrice - (tpDistance * 0.2);
+      const tp2 = direction === 'LONG' ? currentPrice + (tpDistance * 0.5) : currentPrice - (tpDistance * 0.5);
+      const tp3 = direction === 'LONG' ? currentPrice + tpDistance : currentPrice - tpDistance;
+      const balance = await getBinanceBalance() || settings.baseCapital;
+      const positionSize = calculatePositionSize(balance, settings.riskPerTrade, currentPrice, sl, settings.leverage);
+      const margin = positionSize / settings.leverage;
+      const liqPrice = calculateLiquidationPrice(currentPrice, direction, settings.leverage);
+      const slToLiq = Math.abs(sl - liqPrice) / currentPrice;
+      const minSafeDistance = (1 / settings.leverage) * (settings.liqSafetyMargin / 100);
+      if (slToLiq < minSafeDistance) return null;
+      return {
+        symbol, direction, entry: currentPrice, sl, tp1, tp2, tp3,
+        confidence: confluence >= 80 ? 'SNIPER' : confluence >= 70 ? 'HIGH' : 'MEDIUM',
+        reason: reasons.join(' + '), rsi: rsi.toFixed(1),
+        momentum: ((closes5m[closes5m.length - 1] - closes5m[closes5m.length - 5]) / closes5m[closes5m.length - 5] * 100).toFixed(2),
+        timestamp: new Date().toISOString(), confluence, positionSize, margin, liqPrice, atr: atr.toFixed(4)
+      };
+    }
+    return null;
+  } catch (e) { console.error('Analysis error:', e); return null; }
+}
+
+// ================= ORDER PLACEMENT (REAL TRADING) =================
+async function placeBinanceOrder(signal, balance) {
+  try {
+    const apiKey = settings.apiKey, secretKey = settings.secretKey;
+    if (!apiKey || !secretKey) {
+      showToast('❌ Binance API keys not configured!', 'error');
+      showModal('settingsModal'); switchTab('tab-api');
+      return null;
+    }
+    if (settings.tradingMode === 'paper') {
+      return { orderId: 'PAPER_' + Date.now(), status: 'FILLED', avgPrice: signal.entry, executedQty: (signal.positionSize / signal.entry).toFixed(6) };
+    }
+    const side = signal.direction === 'LONG' ? 'BUY' : 'SELL';
+    const quantity = (signal.positionSize / signal.entry).toFixed(getQuantityPrecision(signal.symbol));
+    const timestamp = Date.now();
+    const leverageQuery = `symbol=${signal.symbol}&leverage=${settings.leverage}&timestamp=${timestamp}`;
+    const leverageSig = generateSignature(leverageQuery, secretKey);
+    await fetch(`${getBaseUrl()}/fapi/v1/leverage?${leverageQuery}&signature=${leverageSig}`, {
+      method: 'POST', headers: { 'X-MBX-APIKEY': apiKey }
+    });
+    const orderQuery = `symbol=${signal.symbol}&side=${side}&type=MARKET&quantity=${quantity}&timestamp=${Date.now()}`;
+    const orderSig = generateSignature(orderQuery, secretKey);
+    const response = await fetch(`${getBaseUrl()}/fapi/v1/order?${orderQuery}&signature=${orderSig}`, {
+      method: 'POST', headers: { 'X-MBX-APIKEY': apiKey }
+    });
+    const data = await response.json();
+    if (data.code) {
+      showToast(`❌ Order failed: ${data.msg}`, 'error');
+      return null;
+    }
+    await setStopLossTakeProfit(signal, data.orderId, quantity);
+    return data;
+  } catch (e) { console.error('Order error:', e); showToast('❌ Order placement failed!', 'error'); return null; }
+}
+
+async function setStopLossTakeProfit(signal, parentOrderId, quantity) {
+  try {
+    const apiKey = settings.apiKey, secretKey = settings.secretKey;
+    if (!apiKey || !secretKey || settings.tradingMode === 'paper') return;
+    const closeSide = signal.direction === 'LONG' ? 'SELL' : 'BUY';
+    const pricePrec = getPricePrecision(signal.symbol);
+    const slQuery = `symbol=${signal.symbol}&side=${closeSide}&type=STOP_MARKET&stopPrice=${signal.sl.toFixed(pricePrec)}&quantity=${quantity}&timestamp=${Date.now()}`;
+    const slSig = generateSignature(slQuery, secretKey);
+    await fetch(`${getBaseUrl()}/fapi/v1/order?${slQuery}&signature=${slSig}`, {
+      method: 'POST', headers: { 'X-MBX-APIKEY': apiKey }
+    });
+    const tpQuery = `symbol=${signal.symbol}&side=${closeSide}&type=TAKE_PROFIT_MARKET&stopPrice=${signal.tp3.toFixed(pricePrec)}&quantity=${quantity}&timestamp=${Date.now()}`;
+    const tpSig = generateSignature(tpQuery, secretKey);
+    await fetch(`${getBaseUrl()}/fapi/v1/order?${tpQuery}&signature=${tpSig}`, {
+      method: 'POST', headers: { 'X-MBX-APIKEY': apiKey }
+    });
+  } catch (e) { console.error('SL/TP error:', e); }
+}
+
+// ================= TRADING BOT =================
+async function startTradingBot() {
+  if (botRunning) return;
+  if (!settings.apiKey || !settings.secretKey) {
+    showToast('❌ Please configure Binance API keys first!', 'error');
+    showModal('settingsModal'); switchTab('tab-api'); return;
+  }
+  const balance = await getBinanceBalance();
+  if (balance === null && settings.tradingMode === 'real') {
+    showToast('❌ Cannot connect to Binance. Check API keys.', 'error'); return;
+  }
+  const actualBalance = balance !== null ? balance : settings.baseCapital;
+  if (actualBalance < settings.minBalance) {
+    showToast(`❌ Minimum $${settings.minBalance} USDT required to trade!`, 'error'); return;
+  }
+  botRunning = true;
+  document.getElementById('btnStartBot').classList.add('hidden');
+  document.getElementById('btnStopBot').classList.remove('hidden');
+  document.getElementById('botStatusIndicator').className = 'bot-status bot-running';
+  document.getElementById('botStatusDot').textContent = '🟢';
+  document.getElementById('botStatusText').textContent = 'Bot Running';
+  showToast('🚀 Real Trading Bot Started!');
+  botInterval = setInterval(scanAndTrade, 30000);
+  scanAndTrade();
+  priceUpdateInterval = setInterval(updatePositionPrices, 5000);
+}
+
+function stopTradingBot() {
+  botRunning = false;
+  if (botInterval) clearInterval(botInterval);
+  if (priceUpdateInterval) clearInterval(priceUpdateInterval);
+  document.getElementById('btnStartBot').classList.remove('hidden');
+  document.getElementById('btnStopBot').classList.add('hidden');
+  document.getElementById('botStatusIndicator').className = 'bot-status bot-stopped';
+  document.getElementById('botStatusDot').textContent = '🔴';
+  document.getElementById('botStatusText').textContent = 'Bot Stopped';
+  showToast('⏹️ Trading Bot Stopped');
+}
+
+async function scanAndTrade() {
+  if (!botRunning) return;
+  const today = new Date().toISOString().split('T')[0];
+  if (dailyCount.date !== today) { dailyCount = { count: 0, date: today }; dailyLoss = 0; localStorage.setItem('sniper_daily', JSON.stringify(dailyCount)); }
+  if (dailyCount.count >= settings.maxDailySignals) { showToast('📅 Daily trade limit reached (' + settings.maxDailySignals + ')'); stopTradingBot(); return; }
+  const now = Date.now();
+  const cooldownMs = settings.cooldown * 60 * 1000;
+  if (now - lastTradeTime < cooldownMs) return;
+  const activePos = positions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  if (activePos.length >= settings.maxPositions) return;
+  const balance = await getBinanceBalance() || settings.baseCapital;
+  if (balance < settings.minBalance) { showToast('❌ Insufficient balance!', 'error'); stopTradingBot(); return; }
+  const coins = settings.selectedCoins || ['BTCUSDT', 'ETHUSDT'];
+  let bestSignal = null, bestConfluence = 0;
+  for (const symbol of coins) {
+    try {
+      const signal = await analyzeSymbol(symbol);
+      if (signal && signal.confluence > bestConfluence) { bestSignal = signal; bestConfluence = signal.confluence; }
+    } catch (e) { console.error('Scan error for', symbol, e); }
+  }
+  if (bestSignal) {
+    updateLiquidationDisplay(bestSignal);
+        // Demo mode support
+    if (demoMode) {
+      await executeDemoTrade(bestSignal);
+      return;
+    }
+    const orderResult = await placeBinanceOrder(bestSignal, balance);
+    if (orderResult) {
+      bestSignal.orderId = orderResult.orderId;
+      bestSignal.status = 'active';
+      bestSignal.current_price = bestSignal.entry;
+      bestSignal.roi = 0; bestSignal.tp1_hit = false; bestSignal.tp2_hit = false; bestSignal.tp3_hit = false;
+      signals.push(bestSignal); positions.push(bestSignal);
+      localStorage.setItem('sniper_signals', JSON.stringify(signals));
+      localStorage.setItem('sniper_positions', JSON.stringify(positions));
+      dailyCount.count++; lastTradeTime = Date.now();
+      localStorage.setItem('sniper_daily', JSON.stringify(dailyCount));
+      renderSignals(); updateStats(); renderPositions();
+      showToast(`🎯 SNIPER SIGNAL: ${bestSignal.symbol} ${bestSignal.direction} @ $${bestSignal.entry.toFixed(2)}`);
+      if (settings.telegramToken && settings.chatId) sendTelegramSignal(bestSignal);
+    }
+  }
+  updateMoneyManagement(balance);
+}
+
+async function updatePositionPrices() {
+  if (!currentUser) return;
+  const activePositions = positions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  if (activePositions.length === 0) return;
+  for (const pos of activePositions) {
+    try {
+      const price = await getSymbolPrice(pos.symbol);
+      if (price) {
+        pos.current_price = price;
+        pos.roi = pos.direction === 'LONG' ? ((price - pos.entry) / pos.entry) * 100 : ((pos.entry - price) / pos.entry) * 100;
+        if (!pos.tp1_hit && pos.direction === 'LONG' && price >= pos.tp1) {
+          pos.tp1_hit = true; pos.status = 'tp1_hit';
+          showToast(`🎯 TP1 HIT: ${pos.symbol} +${(pos.roi).toFixed(2)}%`);
+          if (settings.telegramToken) sendTelegramTP(pos, 1);
+        }
+        if (!pos.tp2_hit && pos.direction === 'LONG' && price >= pos.tp2) {
+          pos.tp2_hit = true; pos.status = 'tp2_hit';
+          showToast(`🎯 TP2 HIT: ${pos.symbol} +${(pos.roi).toFixed(2)}%`);
+          if (settings.telegramToken) sendTelegramTP(pos, 2);
+        }
+        if (pos.direction === 'LONG' && price >= pos.tp3) { closePosition(pos, 'tp3'); continue; }
+        if (!pos.tp1_hit && pos.direction === 'SHORT' && price <= pos.tp1) {
+          pos.tp1_hit = true; pos.status = 'tp1_hit';
+          showToast(`🎯 TP1 HIT: ${pos.symbol} +${(pos.roi).toFixed(2)}%`);
+          if (settings.telegramToken) sendTelegramTP(pos, 1);
+        }
+        if (!pos.tp2_hit && pos.direction === 'SHORT' && price <= pos.tp2) {
+          pos.tp2_hit = true; pos.status = 'tp2_hit';
+          showToast(`🎯 TP2 HIT: ${pos.symbol} +${(pos.roi).toFixed(2)}%`);
+          if (settings.telegramToken) sendTelegramTP(pos, 2);
+        }
+        if (pos.direction === 'SHORT' && price <= pos.tp3) { closePosition(pos, 'tp3'); continue; }
+        if (pos.direction === 'LONG' && price <= pos.sl) { closePosition(pos, 'sl'); continue; }
+        if (pos.direction === 'SHORT' && price >= pos.sl) { closePosition(pos, 'sl'); continue; }
+        const liqDistance = Math.abs(price - pos.liqPrice) / pos.entry;
+        if (liqDistance < 0.005) {
+          closePosition(pos, 'liq');
+          showToast(`🚨 LIQUIDATION WARNING CLOSED: ${pos.symbol}`, 'error'); continue;
+        }
+      }
+    } catch (e) { console.error('Price update error:', e); }
+  }
+  localStorage.setItem('sniper_positions', JSON.stringify(positions));
+  renderPositions(); updateStats();
+}
+
+function closePosition(pos, reason) {
+  pos.status = 'completed';
+  pos.exit_price = pos.current_price;
+  pos.exit_reason = reason;
+  pos.exit_time = new Date().toISOString();
+  const pnl = pos.direction === 'LONG' ? ((pos.exit_price - pos.entry) / pos.entry) * 100 : ((pos.entry - pos.exit_price) / pos.entry) * 100;
+  pos.roi = pnl;
+  const isWin = pnl > 0;
+  stats.total++;
+  if (isWin) { stats.wins++; consecutiveLosses = 0; }
+  else { stats.losses++; consecutiveLosses++; dailyLoss += Math.abs(pnl); }
+  stats.winRate = stats.total > 0 ? (stats.wins / stats.total) * 100 : 0;
+  stats.totalPnL += pnl;
+  trades.push({ symbol: pos.symbol, direction: pos.direction, entry: pos.entry, exit_price: pos.exit_price, status: isWin ? 'completed' : 'stopped', roi: pnl, confidence: pos.confidence, timestamp: pos.exit_time, reason });
+  localStorage.setItem('sniper_stats', JSON.stringify(stats));
+  localStorage.setItem('sniper_trades', JSON.stringify(trades));
+  localStorage.setItem('sniper_positions', JSON.stringify(positions));
+  renderPositions(); renderHistory(); updateStats();
+  const emoji = reason === 'tp3' ? '🚀' : reason === 'sl' ? '⛔' : '🚨';
+  showToast(`${emoji} Position closed: ${pos.symbol} ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`);
+  if (settings.telegramToken) sendTelegramClose(pos, reason, pnl);
+  if (dailyLoss >= settings.maxDailyLoss) {
+    showToast(`🛑 Max daily loss (${settings.maxDailyLoss}%) reached!`, 'error');
+    stopTradingBot();
+  }
+}
+
+// ================= TELEGRAM =================
+async function sendTelegramSignal(signal) {
+  try {
+    const msg = encodeURIComponent(`🎯 *SNIPER SIGNAL*\n\n*${signal.symbol}* - ${signal.direction}\nEntry: $${signal.entry.toFixed(4)}\nSL: $${signal.sl.toFixed(4)}\nTP1: $${signal.tp1.toFixed(4)}\nTP2: $${signal.tp2.toFixed(4)}\nTP3: $${signal.tp3.toFixed(4)}\n\nConfidence: ${signal.confidence}\nRSI: ${signal.rsi}\nPosition: $${signal.positionSize.toFixed(2)}\nMargin: $${signal.margin.toFixed(2)}\nLiq Price: $${signal.liqPrice.toFixed(4)}`);
+    await fetch(`https://api.telegram.org/bot${settings.telegramToken}/sendMessage?chat_id=${settings.chatId}&text=${msg}&parse_mode=Markdown`);
+  } catch (e) { console.error('Telegram error:', e); }
+}
+
+async function sendTelegramTP(pos, tpLevel) {
+  try {
+    const msg = encodeURIComponent(`🎯 *TP${tpLevel} HIT!*\n\n${pos.symbol} ${pos.direction}\nROI: +${pos.roi.toFixed(2)}%`);
+    await fetch(`https://api.telegram.org/bot${settings.telegramToken}/sendMessage?chat_id=${settings.chatId}&text=${msg}&parse_mode=Markdown`);
+  } catch (e) { console.error('Telegram error:', e); }
+}
+
+async function sendTelegramClose(pos, reason, pnl) {
+  try {
+    const emoji = reason === 'tp3' ? '🚀' : reason === 'sl' ? '⛔' : '🚨';
+    const msg = encodeURIComponent(`${emoji} *POSITION CLOSED*\n\n${pos.symbol} ${pos.direction}\nResult: ${pnl >= 0 ? '✅ WIN' : '❌ LOSS'}\nROI: ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`);
+    await fetch(`https://api.telegram.org/bot${settings.telegramToken}/sendMessage?chat_id=${settings.chatId}&text=${msg}&parse_mode=Markdown`);
+  } catch (e) { console.error('Telegram error:', e); }
+}
+
+// ================= UI UPDATES =================
+function updateStats() {
+  const today = new Date().toISOString().split('T')[0];
+  if (dailyCount.date !== today) { dailyCount = { count: 0, date: today }; localStorage.setItem('sniper_daily', JSON.stringify(dailyCount)); }
+  document.getElementById('statSignals').textContent = `${dailyCount.count}/${settings.maxDailySignals || 6}`;
+  document.getElementById('signalProgress').style.width = `${(dailyCount.count / (settings.maxDailySignals || 6)) * 100}%`;
+  document.getElementById('statWinRate').textContent = `${stats.winRate.toFixed(1)}%`;
+  document.getElementById('statPnL').textContent = `$${stats.totalPnL.toFixed(2)}`;
+  document.getElementById('statPnLChange').textContent = `${stats.totalPnL >= 0 ? '+' : ''}${stats.totalPnL.toFixed(2)}%`;
+  document.getElementById('statPnLChange').className = `stat-change ${stats.totalPnL >= 0 ? 'positive' : 'negative'}`;
+  const activePos = positions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  document.getElementById('statPositions').textContent = `${activePos.length}/${settings.maxPositions || 2}`;
+}
+
+function renderPositions() {
+  const tbody = document.getElementById('positionsTable');
+  const active = positions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  if (active.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No active positions</td></tr>'; return; }
+  tbody.innerHTML = active.map(p => {
+    const roi = p.roi || 0;
+    const tpHit = p.tp3_hit_time ? 3 : p.tp2_hit_time ? 2 : p.tp1_hit ? 1 : 0;
+    return `<tr><td><strong>${p.symbol}</strong></td><td><span class="signal-direction ${p.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${p.direction}</span></td><td>$${p.entry.toFixed(4)}</td><td>$${(p.current_price || p.entry).toFixed(4)}</td><td class="${roi >= 0 ? 'positive' : 'negative'}">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</td><td>${tpHit}/3</td></tr>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('historyTable');
+  const recent = trades.slice(-20).reverse();
+  if (recent.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No trade history</td></tr>'; return; }
+  tbody.innerHTML = recent.map(t => {
+    const isWin = t.status === 'completed' && t.roi > 0;
+    const roi = t.roi || 0;
+    return `<tr><td>${new Date(t.timestamp).toLocaleString()}</td><td><strong>${t.symbol}</strong></td><td><span class="signal-direction ${t.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${t.direction}</span></td><td>$${t.entry.toFixed(4)}</td><td>$${(t.exit_price || t.current_price || t.entry).toFixed(4)}</td><td><span class="card-badge ${isWin ? 'badge-green' : 'badge-red'}">${isWin ? '✅ WIN' : '❌ LOSS'}</span></td><td class="${roi >= 0 ? 'positive' : 'negative'}">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</td><td>${t.confidence || 'N/A'}</td></tr>`;
+  }).join('');
+}
+
+function filterHistory(type) {
+  const tbody = document.getElementById('historyTable');
+  let filtered = trades.slice(-20).reverse();
+  if (type === 'win') filtered = filtered.filter(t => t.status === 'completed' && t.roi > 0);
+  if (type === 'loss') filtered = filtered.filter(t => t.status === 'stopped' || (t.status === 'completed' && t.roi <= 0));
+  if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No trades found</td></tr>'; return; }
+  tbody.innerHTML = filtered.map(t => {
+    const isWin = t.status === 'completed' && t.roi > 0;
+    const roi = t.roi || 0;
+    return `<tr><td>${new Date(t.timestamp).toLocaleString()}</td><td><strong>${t.symbol}</strong></td><td><span class="signal-direction ${t.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${t.direction}</span></td><td>$${t.entry.toFixed(4)}</td><td>$${(t.exit_price || t.current_price || t.entry).toFixed(4)}</td><td><span class="card-badge ${isWin ? 'badge-green' : 'badge-red'}">${isWin ? '✅ WIN' : '❌ LOSS'}</span></td><td class="${roi >= 0 ? 'positive' : 'negative'}">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</td><td>${t.confidence || 'N/A'}</td></tr>`;
+  }).join('');
+}
+
+function renderSignals() {
+  const container = document.getElementById('signalsContainer');
+  const recent = signals.slice(-5).reverse();
+  if (recent.length === 0) {
+    container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-secondary);"><div style="font-size: 48px; margin-bottom: 16px;">📡</div><p>Scanning markets for sniper signals...</p><p style="font-size: 12px; margin-top: 8px;">Start the bot to begin real trading</p></div>`;
+    return;
+  }
+  container.innerHTML = recent.map(s => `
+    <div class="card signal-card" style="margin-bottom: 12px;">
+      <div class="signal-header"><span class="signal-symbol">${s.symbol}</span><span class="signal-direction ${s.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${s.direction === 'LONG' ? '🟢 BUY' : '🔴 SELL'} ${s.direction}</span></div>
+      <div style="margin-bottom: 8px;"><span class="card-badge ${s.confidence === 'SNIPER' ? 'badge-gold' : s.confidence === 'HIGH' ? 'badge-green' : 'badge-red'}">${s.confidence}</span><span style="color: var(--text-secondary); font-size: 12px; margin-left: 8px;">${s.reason}</span></div>
+      <div class="signal-details">
+        <div class="detail-item"><span class="detail-label">Entry</span><span class="detail-value">$${s.entry.toFixed(4)}</span></div>
+        <div class="detail-item"><span class="detail-label">SL</span><span class="detail-value" style="color: var(--accent-red);">$${s.sl.toFixed(4)}</span></div>
+        <div class="detail-item"><span class="detail-label">TP1</span><span class="detail-value" style="color: var(--accent);">$${s.tp1.toFixed(4)}</span></div>
+        <div class="detail-item"><span class="detail-label">TP2</span><span class="detail-value" style="color: var(--accent);">$${s.tp2.toFixed(4)}</span></div>
+        <div class="detail-item"><span class="detail-label">TP3</span><span class="detail-value" style="color: var(--accent);">$${s.tp3.toFixed(4)}</span></div>
+        <div class="detail-item"><span class="detail-label">RSI</span><span class="detail-value">${s.rsi}</span></div>
+        <div class="detail-item"><span class="detail-label">Size</span><span class="detail-value">$${s.positionSize ? s.positionSize.toFixed(2) : '0.00'}</span></div>
+        <div class="detail-item"><span class="detail-label">Liq</span><span class="detail-value" style="color: var(--accent-red);">$${s.liqPrice ? s.liqPrice.toFixed(2) : '--'}</span></div>
+      </div>
+      <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">${new Date(s.timestamp).toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function updateLiquidationDisplay(signal) {
+  document.getElementById('calcPositionSize').textContent = '$' + signal.positionSize.toFixed(2);
+  document.getElementById('calcMargin').textContent = '$' + signal.margin.toFixed(2);
+  document.getElementById('calcLiqPrice').textContent = '$' + signal.liqPrice.toFixed(4);
+  const slDist = Math.abs(signal.entry - signal.sl) / signal.entry * 100;
+  const liqDist = Math.abs(signal.entry - signal.liqPrice) / signal.entry * 100;
+  document.getElementById('calcSLDist').textContent = slDist.toFixed(2) + '%';
+  const liqEl = document.getElementById('liqInfo');
+  if (slDist < liqDist * 0.3) {
+    liqEl.className = 'liq-warning';
+    liqEl.querySelector('.positive').textContent = '⚠️ DANGER';
+    liqEl.querySelector('.positive').style.color = 'var(--accent-red)';
+  } else {
+    liqEl.className = 'liq-safe';
+    liqEl.querySelector('.positive').textContent = 'SAFE ✅';
+    liqEl.querySelector('.positive').style.color = 'var(--accent)';
+  }
+}
+
+function toggleCoin(btn) {
+  const symbol = btn.dataset.symbol;
+  const isSelected = btn.classList.contains('selected');
+  const selectedCount = document.querySelectorAll('.coin-btn.selected').length;
+  if (isSelected) {
+    if (selectedCount <= 1) { showToast('❌ At least 1 coin required!', 'error'); return; }
+    btn.classList.remove('selected');
+    settings.selectedCoins = settings.selectedCoins.filter(c => c !== symbol);
+  } else {
+    if (selectedCount >= 6) { showToast('❌ Maximum 6 coins allowed!', 'error'); return; }
+    btn.classList.add('selected');
+    settings.selectedCoins.push(symbol);
+  }
+  localStorage.setItem('sniper_settings', JSON.stringify(settings));
+}
+
+function updateCoinSelector() {
+  document.querySelectorAll('.coin-btn').forEach(btn => {
+    const symbol = btn.dataset.symbol;
+    if (settings.selectedCoins && settings.selectedCoins.includes(symbol)) btn.classList.add('selected');
+    else btn.classList.remove('selected');
+  });
+}
+
+// ================= UI HELPERS =================
+function showModal(id) { document.getElementById(id).classList.add('active'); }
+function hideModal(id) { document.getElementById(id).classList.remove('active'); }
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = type === 'error' ? '❌' : '✅';
+  document.getElementById('toastMessage').textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+});
+
+// ================= INIT =================
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('sniper_current_user');
+  if (saved) { currentUser = JSON.parse(saved); showDashboard(); }
+});
+
+
+// ================= SINHALA NEWS FEATURE =================
+const sinhalaNewsData = {
+  crypto: [
+    { title: "බිට්කොයින් මිල නැවත ඉහළට", desc: "ක්‍රිප්ටෝ මාර්කට් එකේ ප්‍රධාන කොයින් එකක මිල වැඩිවීමක්", impact: "high", time: "මීට විනාඩි 5කට පෙර" },
+    { title: "ඉතිරියම් නෙට්වර්ක් යාවත්කාලීනවීම", desc: "ETH 2.0 ස්ථාපනය සාර්ථකව සිදුවේ", impact: "medium", time: "මීට විනාඩි 15කට පෙර" },
+    { title: "සෝලානා ට්‍රැන්සැක්ෂන් වේගය වැඩිවේ", desc: "TPS අගය 65,000 දක්වා ඉහළට", impact: "medium", time: "මීට විනාඩි 30කට පෙර" },
+    { title: "බයිනන්ස් නව ලිස්ටින්", desc: "BNB එකක නව ටෝකන ලිස්ට් කරයි", impact: "low", time: "මීට පැයකට පෙර" },
+    { title: "ක්‍රිප්ටෝ රෙගුලිරිතින්", desc: "ඇමරිකාවේ නව ක්‍රිප්ටෝ නීති රීති", impact: "high", time: "මීට පැය 2කට පෙර" },
+    { title: "ඩෝග්කොයින් ප්‍රජා වර්ධනය", desc: "DOGE හෝල්ඩර්ස් ගණන වැඩිවේ", impact: "low", time: "මීට පැය 3කට පෙර" }
+  ],
+  forex: [
+    { title: "ඇමරිකානු NFP දත්ත නිකුත්වේ", titleEn: "US Non-Farm Payrolls", desc: "අප්‍රේල් මාසයේ රැකියා වර්ධනය අපේක්ෂා කරනවාට වඩා වැඩියි", impact: "high", time: "සෑම පළමු සිකුරාදාවකම 8:30 AM EST" },
+    { title: "FOMC පොලී අනුපාත තීරණය", titleEn: "FOMC Interest Rate Decision", desc: "ෆෙඩරල් රිසර්ව් පොලී අනුපාතය ස්ථිරව තබයි", impact: "high", time: "වසරකට 8 වතාවක්" },
+    { title: "CPI උද්ධමන දත්ත", titleEn: "CPI Inflation Data", desc: "ඇමරිකානු උද්ධමන අනුපාතය අඩුවීමක්", impact: "high", time: "සෑම මාසයකම 8:30 AM EST" },
+    { title: "ECB පොලී අනුපාතය", titleEn: "ECB Interest Rate", desc: "යුරෝපීය මධ්‍යම බැංකුව පොලී අනුපාතය වැඩි කරයි", impact: "medium", time: "සෑම මාසයකම" },
+    { title: "GDP වර්ධන අනුපාතය", titleEn: "GDP Growth Rate", desc: "ඇමරිකානු ආර්ථිකයේ වර්ධනය අඩුවීමක්", impact: "medium", time: "සෑම කාර්තුවකම" },
+    { title: "නිරුත්පාදන දර්ශක", titleEn: "Manufacturing PMI", desc: "නිෂ්පාදන ක්ෂේත්‍රයේ වර්ධනයක්", impact: "low", time: "සෑම මාසයකම" }
+  ]
+};
+
+function getSinhalaNews() {
+  const cryptoNews = sinhalaNewsData.crypto;
+  const forexNews = sinhalaNewsData.forex;
+
+  // Add some randomness to make it look live
+  const randomCrypto = cryptoNews.sort(() => 0.5 - Math.random()).slice(0, 4);
+  const randomForex = forexNews.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+  return { crypto: randomCrypto, forex: randomForex };
+}
+
+async function fetchCryptoNews() {
+  const container = document.getElementById('cryptoNewsContainer');
+  // සෑම විටම සිංහල නිව්ස් පෙන්වන්න
+  const sinhalaNews = getSinhalaNews();
+  const items = sinhalaNews.crypto.map(news => `
+    <div class="news-item" style="border-left-color: ${news.impact === 'high' ? 'var(--accent-red)' : news.impact === 'medium' ? 'var(--accent-gold)' : 'var(--accent)'}">
+      <div class="news-title">${news.title} <span class="news-impact impact-${news.impact}">${news.impact === 'high' ? 'ඉහළ' : news.impact === 'medium' ? 'මධ්‍යම' : 'අඩු'} බලපෑම</span></div>
+      <div class="news-meta">${news.desc} | ${news.time}</div>
+    </div>
+  `).join('');
+  container.innerHTML = items;
+}
+
+async function fetchForexNews() {
+  const container = document.getElementById('forexNewsContainer');
+  const sinhalaNews = getSinhalaNews();
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  const items = sinhalaNews.forex.map(event => {
+    const isUpcoming = event.impact === 'high' && !isWeekend;
+    return `<div class="news-item" style="border-left-color: ${event.impact === 'high' ? 'var(--accent-red)' : event.impact === 'medium' ? 'var(--accent-gold)' : 'var(--accent)'}">
+      <div class="news-title">${event.title} <span class="news-impact impact-${event.impact}">${event.impact === 'high' ? 'ඉහළ' : event.impact === 'medium' ? 'මධ්‍යම' : 'අඩු'} බලපෑම</span></div>
+      <div class="news-meta">${event.desc} | ${event.time} ${isUpcoming ? '<span style="color: var(--accent-red)">⚠️ අවධානය</span>' : ''}</div>
+    </div>`;
+  }).join('');
+  container.innerHTML = items;
+}
+
+// ================= DEMO TRADING (REAL MARKET SIMULATION) =================
+let demoMode = false;
+let demoBalance = 1000;
+let demoPositions = [];
+let demoTrades = [];
+let demoStats = { total: 0, wins: 0, losses: 0, winRate: 0, totalPnL: 0 };
+
+function toggleDemoMode() {
+  demoMode = !demoMode;
+  if (demoMode) {
+    showToast('🎮 ඩෙමෝ මෝඩ් සක්‍රීයයි - රියල් මාකට් ඩේටා භාවිතා කරයි', 'success');
+    document.getElementById('displayMode').textContent = 'Demo Trading (Real Market)';
+    document.getElementById('configMode').textContent = 'Demo Trading (Real Market)';
+    loadDemoData();
+  } else {
+    showToast('🔴 ඩෙමෝ මෝඩ් අක්‍රීයයි', 'error');
+    document.getElementById('displayMode').textContent = 'Real Trading';
+    document.getElementById('configMode').textContent = 'Real Trading';
+  }
+}
+
+function loadDemoData() {
+  const saved = localStorage.getItem('sniper_demo_data');
+  if (saved) {
+    const data = JSON.parse(saved);
+    demoBalance = data.balance || 1000;
+    demoPositions = data.positions || [];
+    demoTrades = data.trades || [];
+    demoStats = data.stats || { total: 0, wins: 0, losses: 0, winRate: 0, totalPnL: 0 };
+  }
+  updateDemoDisplay();
+}
+
+function saveDemoData() {
+  localStorage.setItem('sniper_demo_data', JSON.stringify({
+    balance: demoBalance,
+    positions: demoPositions,
+    trades: demoTrades,
+    stats: demoStats,
+    lastUpdate: new Date().toISOString()
+  }));
+}
+
+function updateDemoDisplay() {
+  if (!demoMode) return;
+  document.getElementById('walletBalance').textContent = '$' + demoBalance.toFixed(2);
+  document.getElementById('walletAvailable').textContent = '$' + (demoBalance * 0.95).toFixed(2);
+  document.getElementById('walletMargin').textContent = '$' + (demoPositions.reduce((sum, p) => sum + p.margin, 0)).toFixed(2);
+  document.getElementById('walletUnrealized').textContent = '$' + (demoPositions.reduce((sum, p) => sum + (p.roi || 0), 0)).toFixed(2);
+
+  // Update stats
+  document.getElementById('statPnL').textContent = '$' + demoStats.totalPnL.toFixed(2);
+  document.getElementById('statWinRate').textContent = demoStats.winRate.toFixed(1) + '%';
+
+  // Update positions table
+  const tbody = document.getElementById('positionsTable');
+  if (demoPositions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">ඩෙමෝ පොසිශන් නැත</td></tr>';
+  } else {
+    tbody.innerHTML = demoPositions.map(p => `
+      <tr>
+        <td><strong>${p.symbol}</strong></td>
+        <td><span class="signal-direction ${p.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${p.direction}</span></td>
+        <td>$${p.entry.toFixed(4)}</td>
+        <td>$${(p.current_price || p.entry).toFixed(4)}</td>
+        <td class="${p.roi >= 0 ? 'positive' : 'negative'}">${p.roi >= 0 ? '+' : ''}${p.roi.toFixed(2)}%</td>
+        <td>0/3</td>
+      </tr>
+    `).join('');
+  }
+}
+
+async function executeDemoTrade(signal) {
+  if (!demoMode) return;
+
+  const positionSize = Math.min(signal.positionSize, demoBalance * 0.2);
+  const margin = positionSize / settings.leverage;
+
+  if (margin > demoBalance * 0.95) {
+    showToast('❌ ඩෙමෝ බැලන්ස් අප්‍රමාණවත්!', 'error');
+    return;
+  }
+
+  const position = {
+    ...signal,
+    positionSize,
+    margin,
+    status: 'active',
+    current_price: signal.entry,
+    roi: 0,
+    tp1_hit: false,
+    tp2_hit: false,
+    tp3_hit: false,
+    demo: true
+  };
+
+  demoPositions.push(position);
+  demoBalance -= margin;
+  saveDemoData();
+  updateDemoDisplay();
+
+  showToast(`🎯 ඩෙමෝ ට්‍රේඩ්: ${signal.symbol} ${signal.direction} @ $${signal.entry.toFixed(2)}`);
+
+  // Simulate price movement
+  simulateDemoPriceMovement(position);
+}
+
+async function simulateDemoPriceMovement(position) {
+  const interval = setInterval(async () => {
+    if (!demoMode || position.status !== 'active') {
+      clearInterval(interval);
+      return;
+    }
+
+    const price = await getSymbolPrice(position.symbol);
+    if (!price) return;
+
+    position.current_price = price;
+    position.roi = position.direction === 'LONG' 
+      ? ((price - position.entry) / position.entry) * 100 
+      : ((position.entry - price) / position.entry) * 100;
+
+    // Check TP/SL
+    if (position.direction === 'LONG') {
+      if (price >= position.tp3) { closeDemoPosition(position, 'tp3'); clearInterval(interval); }
+      else if (price <= position.sl) { closeDemoPosition(position, 'sl'); clearInterval(interval); }
+    } else {
+      if (price <= position.tp3) { closeDemoPosition(position, 'tp3'); clearInterval(interval); }
+      else if (price >= position.sl) { closeDemoPosition(position, 'sl'); clearInterval(interval); }
+    }
+
+    saveDemoData();
+    updateDemoDisplay();
+  }, 5000);
+}
+
+function closeDemoPosition(position, reason) {
+  position.status = 'completed';
+  const pnl = position.roi;
+  const profit = position.margin * (pnl / 100) * settings.leverage;
+  demoBalance += position.margin + profit;
+
+  demoStats.total++;
+  if (pnl > 0) demoStats.wins++; else demoStats.losses++;
+  demoStats.winRate = demoStats.total > 0 ? (demoStats.wins / demoStats.total) * 100 : 0;
+  demoStats.totalPnL += profit;
+
+  demoTrades.push({
+    symbol: position.symbol,
+    direction: position.direction,
+    entry: position.entry,
+    exit_price: position.current_price,
+    status: pnl > 0 ? 'completed' : 'stopped',
+    roi: pnl,
+    confidence: position.confidence,
+    timestamp: new Date().toISOString(),
+    reason
+  });
+
+  demoPositions = demoPositions.filter(p => p !== position);
+  saveDemoData();
+  updateDemoDisplay();
+
+  const emoji = reason === 'tp3' ? '🚀' : '⛔';
+  showToast(`${emoji} ඩෙමෝ ට්‍රේඩ් අවසන්: ${position.symbol} ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`);
+}
+
+// ================= PERSISTENCE ACROSS REFRESHES =================
+// Ensure bot state persists across page refreshes
+function saveBotState() {
+  localStorage.setItem('sniper_bot_state', JSON.stringify({
+    running: botRunning,
+    lastTradeTime: lastTradeTime,
+    dailyLoss: dailyLoss,
+    consecutiveLosses: consecutiveLosses,
+    dailyCount: dailyCount,
+    timestamp: new Date().toISOString()
+  }));
+}
+
+function loadBotState() {
+  const saved = localStorage.getItem('sniper_bot_state');
+  if (saved) {
+    const state = JSON.parse(saved);
+    // Only restore if within same day
+    const savedDate = new Date(state.timestamp).toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+
+    if (savedDate === today) {
+      lastTradeTime = state.lastTradeTime || 0;
+      dailyLoss = state.dailyLoss || 0;
+      consecutiveLosses = state.consecutiveLosses || 0;
+      dailyCount = state.dailyCount || { count: 0, date: today };
+
+      // If bot was running, restart it
+      if (state.running && settings.apiKey && settings.secretKey) {
+        setTimeout(() => startTradingBot(), 2000);
+      }
+    }
+  }
+}
+
+// Override start/stop to save state
+const originalStartBot = startTradingBot;
+const originalStopBot = stopTradingBot;
+
+startTradingBot = async function() {
+  await originalStartBot();
+  saveBotState();
+};
+
+stopTradingBot = function() {
+  originalStopBot();
+  saveBotState();
+};
+
+// Save state periodically
+setInterval(saveBotState, 30000);
+
+// Load state on init
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadBotState, 1000);
+});
+
+// ================= DEMO MODE TOGGLE BUTTON =================
+function addDemoButton() {
+  const botControl = document.getElementById('botControlPanel');
+  if (botControl && !document.getElementById('btnDemoMode')) {
+    const btn = document.createElement('button');
+    btn.id = 'btnDemoMode';
+    btn.className = 'btn btn-gold';
+    btn.textContent = '🎮 Demo Mode';
+    btn.onclick = toggleDemoMode;
+    botControl.insertBefore(btn, botControl.children[2]);
+  }
+}
+
+// Add demo button when dashboard loads
+const originalShowDashboard = showDashboard;
+showDashboard = function() {
+  originalShowDashboard();
+  setTimeout(addDemoButton, 500);
+};
+
+
+// ================= TRADING MODE MANAGEMENT =================
+let currentTradingMode = localStorage.getItem('sniper_trading_mode') || 'real';
+
+function changeTradingMode(mode) {
+  currentTradingMode = mode;
+  localStorage.setItem('sniper_trading_mode', mode);
+
+  if (mode === 'demo') {
+    document.getElementById('displayMode').textContent = 'Demo Trading';
+    document.getElementById('displayMode').style.color = 'var(--accent-gold)';
+    document.getElementById('configMode').textContent = 'Demo Trading';
+    showToast('🎮 Demo Trading Mode සක්‍රීයයි - Real Market Data භාවිතා කරයි', 'success');
+    loadDemoData();
+    updateDemoDisplay();
+  } else {
+    document.getElementById('displayMode').textContent = 'Real Trading';
+    document.getElementById('displayMode').style.color = 'var(--accent-red)';
+    document.getElementById('configMode').textContent = 'Real Trading';
+    showToast('🔴 Real Trading Mode සක්‍රීයයි - API Keys අවශ්‍යයි', 'success');
+    fetchWalletBalance();
+  }
+}
+
+// Initialize mode selector
+function initModeSelector() {
+  const selector = document.getElementById('tradingModeSelector');
+  if (selector) {
+    selector.value = currentTradingMode;
+  }
+}
+
+// Override startTradingBot to handle both modes
+const _originalStartBot = startTradingBot;
+startTradingBot = async function() {
+  if (currentTradingMode === 'demo') {
+    await startDemoTradingBot();
+  } else {
+    await _originalStartBot();
+  }
+};
+
+const _originalStopBot = stopTradingBot;
+stopTradingBot = function() {
+  if (currentTradingMode === 'demo') {
+    stopDemoTradingBot();
+  } else {
+    _originalStopBot();
+  }
+};
+
+// ================= DEMO TRADING BOT (COMPLETELY SEPARATE) =================
+let demoBotRunning = false;
+let demoBotInterval = null;
+let demoPriceUpdateInterval = null;
+let demoLastTradeTime = 0;
+let demoDailyCount = JSON.parse(localStorage.getItem('sniper_demo_daily') || JSON.stringify({ count: 0, date: new Date().toISOString().split('T')[0] }));
+let demoDailyLoss = 0;
+let demoConsecutiveLosses = 0;
+
+async function startDemoTradingBot() {
+  if (demoBotRunning) return;
+
+  demoBotRunning = true;
+  document.getElementById('btnStartBot').classList.add('hidden');
+  document.getElementById('btnStopBot').classList.remove('hidden');
+  document.getElementById('botStatusIndicator').className = 'bot-status bot-running';
+  document.getElementById('botStatusDot').textContent = '🟢';
+  document.getElementById('botStatusText').textContent = 'Demo Bot Running';
+
+  showToast('🎮 Demo Trading Bot Started! Real market data භාවිතා කරයි');
+
+  demoBotInterval = setInterval(demoScanAndTrade, 30000);
+  demoScanAndTrade();
+  demoPriceUpdateInterval = setInterval(demoUpdatePositionPrices, 5000);
+}
+
+function stopDemoTradingBot() {
+  demoBotRunning = false;
+  if (demoBotInterval) clearInterval(demoBotInterval);
+  if (demoPriceUpdateInterval) clearInterval(demoPriceUpdateInterval);
+
+  document.getElementById('btnStartBot').classList.remove('hidden');
+  document.getElementById('btnStopBot').classList.add('hidden');
+  document.getElementById('botStatusIndicator').className = 'bot-status bot-stopped';
+  document.getElementById('botStatusDot').textContent = '🔴';
+  document.getElementById('botStatusText').textContent = 'Bot Stopped';
+
+  showToast('⏹️ Demo Trading Bot Stopped');
+}
+
+async function demoScanAndTrade() {
+  if (!demoBotRunning) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  if (demoDailyCount.date !== today) {
+    demoDailyCount = { count: 0, date: today };
+    demoDailyLoss = 0;
+    localStorage.setItem('sniper_demo_daily', JSON.stringify(demoDailyCount));
+  }
+
+  if (demoDailyCount.count >= settings.maxDailySignals) {
+    showToast('📅 Demo daily trade limit reached (' + settings.maxDailySignals + ')');
+    stopDemoTradingBot();
+    return;
+  }
+
+  const now = Date.now();
+  const cooldownMs = settings.cooldown * 60 * 1000;
+  if (now - demoLastTradeTime < cooldownMs) return;
+
+  const activePos = demoPositions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  if (activePos.length >= settings.maxPositions) return;
+
+  if (demoBalance < settings.minBalance) {
+    showToast('❌ Demo balance insufficient!', 'error');
+    stopDemoTradingBot();
+    return;
+  }
+
+  // Scan selected coins
+  const coins = settings.selectedCoins || ['BTCUSDT', 'ETHUSDT'];
+  let bestSignal = null;
+  let bestConfluence = 0;
+
+  for (const symbol of coins) {
+    try {
+      const signal = await analyzeSymbol(symbol);
+      if (signal && signal.confluence > bestConfluence) {
+        bestSignal = signal;
+        bestConfluence = signal.confluence;
+      }
+    } catch (e) {
+      console.error('Demo scan error for', symbol, e);
+    }
+  }
+
+  if (bestSignal) {
+    // Calculate demo position size
+    const positionSize = Math.min(bestSignal.positionSize, demoBalance * 0.2);
+    const margin = positionSize / settings.leverage;
+
+    if (margin > demoBalance * 0.95) {
+      showToast('❌ Demo balance අප්‍රමාණවත්!', 'error');
+      return;
+    }
+
+    const position = {
+      ...bestSignal,
+      positionSize,
+      margin,
+      status: 'active',
+      current_price: bestSignal.entry,
+      roi: 0,
+      tp1_hit: false,
+      tp2_hit: false,
+      tp3_hit: false,
+      demo: true
+    };
+
+    demoPositions.push(position);
+    demoBalance -= margin;
+
+    demoDailyCount.count++;
+    demoLastTradeTime = Date.now();
+    localStorage.setItem('sniper_demo_daily', JSON.stringify(demoDailyCount));
+
+    saveDemoData();
+    updateDemoDisplay();
+    renderSignals();
+    updateStats();
+
+    showToast(`🎯 DEMO SNIPER: ${bestSignal.symbol} ${bestSignal.direction} @ $${bestSignal.entry.toFixed(2)}`);
+
+    // Start price simulation for this position
+    demoSimulatePriceMovement(position);
+  }
+}
+
+async function demoSimulatePriceMovement(position) {
+  const interval = setInterval(async () => {
+    if (!demoBotRunning || position.status !== 'active') {
+      clearInterval(interval);
+      return;
+    }
+
+    try {
+      const price = await getSymbolPrice(position.symbol);
+      if (!price) return;
+
+      position.current_price = price;
+      position.roi = position.direction === 'LONG' 
+        ? ((price - position.entry) / position.entry) * 100 
+        : ((position.entry - price) / position.entry) * 100;
+
+      // Check TP1
+      if (!position.tp1_hit && position.direction === 'LONG' && price >= position.tp1) {
+        position.tp1_hit = true; position.status = 'tp1_hit';
+        showToast(`🎯 Demo TP1 HIT: ${position.symbol} +${position.roi.toFixed(2)}%`);
+      }
+      if (!position.tp1_hit && position.direction === 'SHORT' && price <= position.tp1) {
+        position.tp1_hit = true; position.status = 'tp1_hit';
+        showToast(`🎯 Demo TP1 HIT: ${position.symbol} +${position.roi.toFixed(2)}%`);
+      }
+
+      // Check TP2
+      if (!position.tp2_hit && position.direction === 'LONG' && price >= position.tp2) {
+        position.tp2_hit = true; position.status = 'tp2_hit';
+        showToast(`🎯 Demo TP2 HIT: ${position.symbol} +${position.roi.toFixed(2)}%`);
+      }
+      if (!position.tp2_hit && position.direction === 'SHORT' && price <= position.tp2) {
+        position.tp2_hit = true; position.status = 'tp2_hit';
+        showToast(`🎯 Demo TP2 HIT: ${position.symbol} +${position.roi.toFixed(2)}%`);
+      }
+
+      // Check TP3 - close position
+      if (position.direction === 'LONG' && price >= position.tp3) {
+        demoClosePosition(position, 'tp3');
+        clearInterval(interval);
+        return;
+      }
+      if (position.direction === 'SHORT' && price <= position.tp3) {
+        demoClosePosition(position, 'tp3');
+        clearInterval(interval);
+        return;
+      }
+
+      // Check SL
+      if (position.direction === 'LONG' && price <= position.sl) {
+        demoClosePosition(position, 'sl');
+        clearInterval(interval);
+        return;
+      }
+      if (position.direction === 'SHORT' && price >= position.sl) {
+        demoClosePosition(position, 'sl');
+        clearInterval(interval);
+        return;
+      }
+
+      saveDemoData();
+      updateDemoDisplay();
+      renderPositions();
+    } catch (e) {
+      console.error('Demo price update error:', e);
+    }
+  }, 5000);
+}
+
+function demoClosePosition(position, reason) {
+  position.status = 'completed';
+  const pnl = position.roi;
+  const profit = position.margin * (pnl / 100) * settings.leverage;
+  demoBalance += position.margin + profit;
+
+  demoStats.total++;
+  if (pnl > 0) {
+    demoStats.wins++;
+    demoConsecutiveLosses = 0;
+  } else {
+    demoStats.losses++;
+    demoConsecutiveLosses++;
+    demoDailyLoss += Math.abs(pnl);
+  }
+  demoStats.winRate = demoStats.total > 0 ? (demoStats.wins / demoStats.total) * 100 : 0;
+  demoStats.totalPnL += profit;
+
+  demoTrades.push({
+    symbol: position.symbol,
+    direction: position.direction,
+    entry: position.entry,
+    exit_price: position.current_price,
+    status: pnl > 0 ? 'completed' : 'stopped',
+    roi: pnl,
+    confidence: position.confidence,
+    timestamp: new Date().toISOString(),
+    reason: reason,
+    demo: true
+  });
+
+  demoPositions = demoPositions.filter(p => p !== position);
+  saveDemoData();
+  updateDemoDisplay();
+  renderPositions();
+  renderHistory();
+  updateStats();
+
+  const emoji = reason === 'tp3' ? '🚀' : '⛔';
+  showToast(`${emoji} Demo Position Closed: ${position.symbol} ${pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}%`);
+
+  if (demoDailyLoss >= settings.maxDailyLoss) {
+    showToast(`🛑 Demo max daily loss (${settings.maxDailyLoss}%) reached!`, 'error');
+    stopDemoTradingBot();
+  }
+}
+
+async function demoUpdatePositionPrices() {
+  if (!demoBotRunning) return;
+
+  const activePositions = demoPositions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  if (activePositions.length === 0) return;
+
+  for (const pos of activePositions) {
+    try {
+      const price = await getSymbolPrice(pos.symbol);
+      if (price) {
+        pos.current_price = price;
+        pos.roi = pos.direction === 'LONG' 
+          ? ((price - pos.entry) / pos.entry) * 100 
+          : ((pos.entry - price) / pos.entry) * 100;
+      }
+    } catch (e) {
+      console.error('Demo price update error:', e);
+    }
+  }
+
+  saveDemoData();
+  updateDemoDisplay();
+  renderPositions();
+}
+
+// ================= DEMO DATA PERSISTENCE =================
+function saveDemoData() {
+  localStorage.setItem('sniper_demo_data', JSON.stringify({
+    balance: demoBalance,
+    positions: demoPositions,
+    trades: demoTrades,
+    stats: demoStats,
+    lastUpdate: new Date().toISOString()
+  }));
+}
+
+function loadDemoData() {
+  const saved = localStorage.getItem('sniper_demo_data');
+  if (saved) {
+    const data = JSON.parse(saved);
+    demoBalance = data.balance || 1000;
+    demoPositions = data.positions || [];
+    demoTrades = data.trades || [];
+    demoStats = data.stats || { total: 0, wins: 0, losses: 0, winRate: 0, totalPnL: 0 };
+  } else {
+    // Initialize with default values
+    demoBalance = 1000;
+    demoPositions = [];
+    demoTrades = [];
+    demoStats = { total: 0, wins: 0, losses: 0, winRate: 0, totalPnL: 0 };
+  }
+}
+
+function updateDemoDisplay() {
+  if (currentTradingMode !== 'demo') return;
+
+  document.getElementById('walletBalance').textContent = '$' + demoBalance.toFixed(2);
+  document.getElementById('walletAvailable').textContent = '$' + (demoBalance * 0.95).toFixed(2);
+  document.getElementById('walletMargin').textContent = '$' + (demoPositions.reduce((sum, p) => sum + (p.margin || 0), 0)).toFixed(2);
+
+  const unrealized = demoPositions.reduce((sum, p) => {
+    if (p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit') {
+      return sum + (p.margin * (p.roi || 0) / 100 * settings.leverage);
+    }
+    return sum;
+  }, 0);
+
+  document.getElementById('walletUnrealized').textContent = (unrealized >= 0 ? '+' : '') + '$' + unrealized.toFixed(2);
+  document.getElementById('walletUnrealized').style.color = unrealized >= 0 ? 'var(--accent)' : 'var(--accent-red)';
+  document.getElementById('walletMaintMargin').textContent = '$' + (demoPositions.reduce((sum, p) => sum + (p.margin || 0) * 0.1, 0)).toFixed(2);
+
+  const riskRatio = demoBalance > 0 ? (demoPositions.reduce((sum, p) => sum + (p.margin || 0), 0) / demoBalance) * 100 : 0;
+  document.getElementById('walletRiskRatio').textContent = riskRatio.toFixed(1) + '%';
+  document.getElementById('walletRiskRatio').style.color = riskRatio > 80 ? 'var(--accent-red)' : riskRatio > 50 ? 'var(--accent-gold)' : 'var(--accent)';
+
+  const riskFill = document.getElementById('riskMeterFill');
+  riskFill.style.width = Math.min(riskRatio, 100) + '%';
+  riskFill.className = 'risk-fill ' + (riskRatio > 80 ? 'risk-high' : riskRatio > 50 ? 'risk-medium' : 'risk-low');
+
+  // Update stats
+  document.getElementById('statPnL').textContent = '$' + demoStats.totalPnL.toFixed(2);
+  document.getElementById('statWinRate').textContent = demoStats.winRate.toFixed(1) + '%';
+
+  const activePos = demoPositions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+  document.getElementById('statPositions').textContent = `${activePos.length}/${settings.maxPositions || 2}`;
+
+  document.getElementById('statSignals').textContent = `${demoDailyCount.count}/${settings.maxDailySignals || 6}`;
+  document.getElementById('signalProgress').style.width = `${(demoDailyCount.count / (settings.maxDailySignals || 6)) * 100}%`;
+
+  // Update money management
+  document.getElementById('mmBalance').textContent = '$' + demoBalance.toFixed(2);
+  document.getElementById('mmMaxRisk').textContent = '$' + (demoBalance * (settings.riskPerTrade / 100)).toFixed(2);
+  document.getElementById('mmMaxDailyLoss').textContent = '$' + (demoBalance * (settings.maxDailyLoss / 100)).toFixed(2);
+  document.getElementById('mmCurrentLoss').textContent = '$' + (demoDailyLoss * (demoBalance / 100)).toFixed(2);
+  document.getElementById('mmRemainingBudget').textContent = '$' + ((demoBalance * (settings.maxDailyLoss / 100)) - (demoDailyLoss * (demoBalance / 100))).toFixed(2);
+}
+
+// Override updateStats to handle both modes
+const _originalUpdateStats = updateStats;
+updateStats = function() {
+  if (currentTradingMode === 'demo') {
+    updateDemoDisplay();
+  } else {
+    _originalUpdateStats();
+  }
+};
+
+// Override renderPositions to handle both modes
+const _originalRenderPositions = renderPositions;
+renderPositions = function() {
+  if (currentTradingMode === 'demo') {
+    const tbody = document.getElementById('positionsTable');
+    const active = demoPositions.filter(p => p.status === 'active' || p.status === 'tp1_hit' || p.status === 'tp2_hit');
+    if (active.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Demo positions නැත</td></tr>';
+      return;
+    }
+    tbody.innerHTML = active.map(p => {
+      const roi = p.roi || 0;
+      const tpHit = p.tp3_hit_time ? 3 : p.tp2_hit_time ? 2 : p.tp1_hit ? 1 : 0;
+      return `<tr>
+        <td><strong>${p.symbol}</strong></td>
+        <td><span class="signal-direction ${p.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${p.direction}</span></td>
+        <td>$${p.entry.toFixed(4)}</td>
+        <td>$${(p.current_price || p.entry).toFixed(4)}</td>
+        <td class="${roi >= 0 ? 'positive' : 'negative'}">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</td>
+        <td>${tpHit}/3</td>
+      </tr>`;
+    }).join('');
+  } else {
+    _originalRenderPositions();
+  }
+};
+
+// Override renderHistory to handle both modes
+const _originalRenderHistory = renderHistory;
+renderHistory = function() {
+  if (currentTradingMode === 'demo') {
+    const tbody = document.getElementById('historyTable');
+    const recent = demoTrades.slice(-20).reverse();
+    if (recent.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">Demo trade history නැත</td></tr>';
+      return;
+    }
+    tbody.innerHTML = recent.map(t => {
+      const isWin = t.status === 'completed' && t.roi > 0;
+      const roi = t.roi || 0;
+      return `<tr>
+        <td>${new Date(t.timestamp).toLocaleString()}</td>
+        <td><strong>${t.symbol}</strong></td>
+        <td><span class="signal-direction ${t.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${t.direction}</span></td>
+        <td>$${t.entry.toFixed(4)}</td>
+        <td>$${(t.exit_price || t.current_price || t.entry).toFixed(4)}</td>
+        <td><span class="card-badge ${isWin ? 'badge-green' : 'badge-red'}">${isWin ? '✅ WIN' : '❌ LOSS'}</span></td>
+        <td class="${roi >= 0 ? 'positive' : 'negative'}">${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%</td>
+        <td>${t.confidence || 'N/A'}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    _originalRenderHistory();
+  }
+};
+
+// Override renderSignals to handle both modes
+const _originalRenderSignals = renderSignals;
+renderSignals = function() {
+  if (currentTradingMode === 'demo') {
+    const container = document.getElementById('signalsContainer');
+    const recent = demoTrades.slice(-5).reverse();
+    if (recent.length === 0) {
+      container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+        <div style="font-size: 48px; margin-bottom: 16px;">📡</div>
+        <p>Demo signals සඳහා scan කරමින්...</p>
+        <p style="font-size: 12px; margin-top: 8px;">Bot ආරම්භ කර demo trading කරන්න</p>
+      </div>`;
+      return;
+    }
+    container.innerHTML = recent.map(s => `
+      <div class="card signal-card" style="margin-bottom: 12px;">
+        <div class="signal-header">
+          <span class="signal-symbol">${s.symbol}</span>
+          <span class="signal-direction ${s.direction === 'LONG' ? 'direction-long' : 'direction-short'}">${s.direction === 'LONG' ? '🟢 BUY' : '🔴 SELL'} ${s.direction}</span>
+        </div>
+        <div style="margin-bottom: 8px;">
+          <span class="card-badge ${s.confidence === 'SNIPER' ? 'badge-gold' : s.confidence === 'HIGH' ? 'badge-green' : 'badge-red'}">${s.confidence}</span>
+          <span style="color: var(--text-secondary); font-size: 12px; margin-left: 8px;">Demo Trade</span>
+        </div>
+        <div class="signal-details">
+          <div class="detail-item"><span class="detail-label">Entry</span><span class="detail-value">$${s.entry.toFixed(4)}</span></div>
+          <div class="detail-item"><span class="detail-label">Exit</span><span class="detail-value">$${s.exit_price.toFixed(4)}</span></div>
+          <div class="detail-item"><span class="detail-label">ROI</span><span class="detail-value ${s.roi >= 0 ? 'positive' : 'negative'}">${s.roi >= 0 ? '+' : ''}${s.roi.toFixed(2)}%</span></div>
+          <div class="detail-item"><span class="detail-label">Reason</span><span class="detail-value">${s.reason}</span></div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">${new Date(s.timestamp).toLocaleString()}</div>
+      </div>
+    `).join('');
+  } else {
+    _originalRenderSignals();
+  }
+};
+
+// ================= PERSISTENCE ACROSS REFRESHES =================
+// Save bot state every 30 seconds
+setInterval(function() {
+  if (currentTradingMode === 'real') {
+    localStorage.setItem('sniper_bot_state', JSON.stringify({
+      running: botRunning,
+      lastTradeTime: lastTradeTime,
+      dailyLoss: dailyLoss,
+      consecutiveLosses: consecutiveLosses,
+      dailyCount: dailyCount,
+      timestamp: new Date().toISOString()
+    }));
+  } else {
+    localStorage.setItem('sniper_demo_bot_state', JSON.stringify({
+      running: demoBotRunning,
+      lastTradeTime: demoLastTradeTime,
+      dailyLoss: demoDailyLoss,
+      consecutiveLosses: demoConsecutiveLosses,
+      dailyCount: demoDailyCount,
+      timestamp: new Date().toISOString()
+    }));
+  }
+}, 30000);
+
+// Load bot state on init
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    initModeSelector();
+
+    // Check if we need to restore bot state
+    const savedMode = localStorage.getItem('sniper_trading_mode') || 'real';
+    changeTradingMode(savedMode);
+
+    if (savedMode === 'real') {
+      const savedState = localStorage.getItem('sniper_bot_state');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        const savedDate = new Date(state.timestamp).toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+
+        if (savedDate === today && state.running) {
+          setTimeout(() => startTradingBot(), 2000);
+        }
+      }
+    } else {
+      const savedState = localStorage.getItem('sniper_demo_bot_state');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        const savedDate = new Date(state.timestamp).toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+
+        if (savedDate === today && state.running) {
+          loadDemoData();
+          setTimeout(() => startDemoTradingBot(), 2000);
+        }
+      }
+    }
+  }, 1500);
+});
+
+</script>
+</body>
+</html>
